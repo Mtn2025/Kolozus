@@ -74,7 +74,9 @@ services:
       - kolozus_network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      - "traefik.http.routers.kolozus-frontend.rule=Host(`kolozus.ubrokers.mx`)"
+      - "traefik.http.routers.kolozus-frontend.entrypoints=http"
+      - "traefik.http.services.kolozus-frontend.loadbalancer.server.port=3000"
 
 volumes:
   postgres_data:

@@ -56,4 +56,5 @@ ENV PORT 3000
 # set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["node", "server.js"]
+# Enable verbose logging to debug routing issues
+CMD ["sh", "-c", "echo 'Starting Next.js server...' && node server.js"]
