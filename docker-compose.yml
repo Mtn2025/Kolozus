@@ -48,7 +48,8 @@ services:
     networks:
       - kolozus_network
     labels:
-      - "coolify.port=8000"
+      - "traefik.enable=true"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
 
   frontend:
     build:
@@ -72,7 +73,8 @@ services:
     networks:
       - kolozus_network
     labels:
-      - "coolify.port=3000"
+      - "traefik.enable=true"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
 
 volumes:
   postgres_data:
