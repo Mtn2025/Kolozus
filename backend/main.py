@@ -9,9 +9,15 @@ from sqlalchemy.exc import OperationalError
 
 # Robust DB Initialization
 def init_db(retries=10, delay=2):
+    from sqlalchemy import text
     for i in range(retries):
         try:
             print(f"Attempting DB connection ({i+1}/{retries})...")
+            # Create pgvector extension first
+            with engine.connect() as conn:
+                conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+                conn.commit()
+            # Then create all tables
             Base.metadata.create_all(bind=engine)
             print("DB Schema initialized successfully.")
             return
