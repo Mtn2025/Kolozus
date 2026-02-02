@@ -1,6 +1,6 @@
 import { Fragment, Idea, IdeaVersion, DecisionLog, GraphNode, SearchResult, ReplayResult } from "./types";
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 async function fetchJson<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const res = await fetch(`${BASE_URL}${endpoint}`, { cache: "no-store", ...options });
