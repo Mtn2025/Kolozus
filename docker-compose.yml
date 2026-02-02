@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: kolozus-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: kolozus
+      POSTGRES_PASSWORD: kolozus_strong_password
+      POSTGRES_DB: kolozus_main
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kolozus -d kolozus_main"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: kolozus-backend
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      - DATABASE_URL=postgresql://kolozus:kolozus_strong_password@db:5432/kolozus_main
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - AI_PROVIDER=composite
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  default:
+    driver: bridge

@@ -1,0 +1,35 @@
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel
+from typing import Optional
+from domain.services.ui_config_service import UIConfigService, UIConfig
+from infrastructure.dependencies import get_ui_config_service
+
+router = APIRouter()
+
+class UpdateThemeRequest(BaseModel):
+    theme: str
+
+@router.get("/config", response_model=UIConfig)
+async def get_ui_config(
+    service: UIConfigService = Depends(get_ui_config_service)
+):
+    """Returns the current active UI configuration (Theme)."""
+    # TODO: Extract user_id from auth token
+    user_id = None 
+    return service.get_config(user_id=user_id)
+
+@router.post("/config")
+async def update_ui_config(
+    request: UpdateThemeRequest,
+    service: UIConfigService = Depends(get_ui_config_service)
+):
+    """
+    Updates the active UI theme.
+    """
+    try:
+        # TODO: Extract user_id from auth token
+        user_id = None
+        service.save_config(request.theme, user_id=user_id)
+        return {"status": "success", "theme": request.theme}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

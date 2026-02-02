@@ -1,0 +1,168 @@
+from uuid import uuid4, uuid5, NAMESPACE_OID
+from typing import Optional
+from domain.models import Fragment, Idea, IdeaVersion, Space
+from domain.engine import CognitiveEngine
+from domain.events import DecisionResult, CognitiveAction
+from ports.repository import RepositoryPort
+from ports.ai_provider import AIProviderPort
+from ports.decision_ledger import DecisionLedgerPort
+from datetime import datetime
+
+class CognitivePipeline:
+    def __init__(
+        self,
+        repository: RepositoryPort,
+        engine: CognitiveEngine,
+        ai_provider: AIProviderPort,
+        ledger: DecisionLedgerPort
+    ):
+        self.repo = repository
+        self.engine = engine
+        self.ai = ai_provider
+        self.ledger = ledger
+
+    async def process_text(self, text: str, source: str = "manual", mode: str = "default", space_id: Optional[str] = None) -> DecisionResult:
+        # 1. Create Raw Fragment (Deterministic ID)
+        f_id = uuid5(NAMESPACE_OID, text)
+        
+        # Parse UUID if string
+        sid = None
+        if space_id:
+             try:
+                 sid = uuid5(NAMESPACE_OID, space_id) if len(space_id) < 32 else UUID(space_id) # Simplify, assume UUID string
+                 # Actually, better to just expect valid UUID string or None from controller
+                 # But for robustness let's just use UUID(space_id) if provided
+                 import uuid
+                 sid = uuid.UUID(space_id)
+             except:
+                 pass # Fallback to None (General) if invalid
+
+        fragment = Fragment(
+            id=f_id,
+            raw_text=text,
+            source=source,
+            created_at=datetime.utcnow(),
+            space_id=sid
+        )
+        
+        # 2. Enrich (Embedding)
+        fragment.embedding = await self.ai.generate_embedding(text)
+        
+        # 3. Retrieve Candidates (Vector Search)
+        # Returns List[Tuple[Idea, float]]
+        if fragment.embedding:
+            # STRICT FILTER: Only search candidates within the same space
+            candidates_with_score = await self.repo.search_candidates(fragment.embedding, limit=5, space_id=sid)
+        else:
+            candidates_with_score = []
+        
+        # 4. Decide
+        decision = self.engine.decide_fragment_destination(fragment, candidates_with_score, mode=mode)
+        
+        # --- ENRICH METADATA (Cognitive Gate) ---
+        decision.constraints.append(f"engine_v:{self.engine.ENGINE_VERSION}")
+        decision.constraints.append(f"rules_v:{self.engine.RULE_SET_VERSION}")
+        
+        provider_name = self.ai.__class__.__name__
+        decision.constraints.append(f"emb_provider:{provider_name}")
+        decision.constraints.append("emb_model:mock-fixed-dim" if "Mock" in provider_name else "emb_model:ollama-nomic")
+        decision.constraints.append("prompt_hash:mock-hash-123") 
+        
+        # 5. Execute Action
+        if decision.action == CognitiveAction.CREATE_NEW:
+            # Create new Idea from Fragment
+            start_vector = fragment.embedding
+            if not start_vector:
+                start_vector = [0.0] * 1536 
+
+            # Initialize Domain Semantic Profile
+            from domain.semantic import SemanticProfile
+            
+            initial_profile = SemanticProfile(centroid=start_vector, fragment_count=1)
+
+            new_title = await self.ai.synthesize(text, "provisional_title")
+             
+            # Deterministic Idea ID based on Creator Fragment
+            idea_id = uuid5(NAMESPACE_OID, f"IDEA:{f_id}")
+             
+            new_idea = Idea(
+                id=idea_id,
+                title_provisional=new_title,
+                domain="Unclassified",
+                status="germinal",
+                created_at=datetime.utcnow(),
+                semantic_profile=initial_profile,
+                space_id=sid
+            )
+            # Save Idea first
+            await self.repo.save_idea(new_idea)
+            await self.repo.save_fragment(fragment)
+            
+            # Create Initial Version
+            initial_version = IdeaVersion(
+                id=uuid4(),
+                idea_id=new_idea.id,
+                version_number=1,
+                stage="germinal",
+                synthesized_text=f"Initial seed: {text}",
+                reasoning_log="Genesis from single fragment",
+                created_at=datetime.utcnow()
+            )
+            await self.repo.save_idea_version(initial_version)
+             
+            # Log decision with target
+            decision.target_idea_id = new_idea.id
+            await self.ledger.record_decision(fragment, decision)
+
+            
+        elif decision.action == CognitiveAction.ATTACH:
+            # 1. Retrieve Target Idea
+            target_idea = await self.repo.get_idea(decision.target_idea_id)
+            if not target_idea:
+                raise ValueError(f"Target Idea {decision.target_idea_id} not found")
+
+            # 2. Save Fragment
+            await self.repo.save_fragment(fragment)
+            
+            # --- SEMANTIC UPDATE ---
+            # Recalculate Centroid
+            if target_idea.semantic_profile and fragment.embedding:
+                target_idea.semantic_profile = target_idea.semantic_profile.update(fragment.embedding)
+                # Save updated idea (with new profile)
+                await self.repo.save_idea(target_idea)
+                
+            # 3. Evolution Logic: Create new Version
+            # Get latest version number
+            latest_v = await self.repo.get_latest_version(target_idea.id)
+            current_ver_num = latest_v.version_number if latest_v else 0
+            new_version_num = current_ver_num + 1
+            
+            # Synthesis of new state
+            synthesis = await self.ai.synthesize(text, f"integrate_into:{target_idea.title_provisional}")
+            
+            new_version = IdeaVersion(
+                 id=uuid4(),
+                 idea_id=target_idea.id,
+                 version_number=new_version_num,
+                 stage=target_idea.status, # Stays same unless trigger
+                 synthesized_text=synthesis,
+                 reasoning_log=f"Attached fragment: {text[:30]}...",
+                 created_at=datetime.utcnow()
+            )
+            await self.repo.save_idea_version(new_version)
+            
+            # 4. Check for State Transition (Evolution)
+            # Ask Engine if this update triggers a phase change
+            transition_event = self.engine.detect_evolution_triggers(target_idea, new_version)
+            if transition_event:
+                # Execute Transition
+                target_idea.status = transition_event.payload["new_phase"]
+                target_idea.updated_at = datetime.utcnow()
+                await self.repo.save_idea(target_idea)
+                
+                # Log usage of transition
+                decision.reasoning += f" [Transitioned to {target_idea.status}]"
+            
+            await self.ledger.record_decision(fragment, decision)
+            
+        return decision
