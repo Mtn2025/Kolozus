@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Body
 from typing import List, Dict, Any, Optional
 from uuid import UUID, uuid4
 from ports.repository import RepositoryPort
-from infrastructure.dependencies import get_repository
+from infrastructure.dependencies import get_repository, get_ai_provider
+from ports.ai_provider import AIProviderPort
 from pydantic import BaseModel
 from domain.models import Product, ProductSection, Archetype, StyleFamily
 
