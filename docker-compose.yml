@@ -86,6 +86,8 @@ services:
       - "traefik.http.routers.kolozus-frontend-https.service=kolozus-frontend"
       - "traefik.http.routers.kolozus-frontend-https.tls=true"
       - "traefik.http.routers.kolozus-frontend-https.tls.certresolver=letsencrypt"
+      # Bind Coolify's auto-generated HTTPS router to service
+      - "traefik.http.routers.https-0-j80gkwowkww0ow40cgsgw4c4-frontend.service=kolozus-frontend"
       # Service
       - "traefik.http.services.kolozus-frontend.loadbalancer.server.port=3000"
       - "coolify.port=3000"
