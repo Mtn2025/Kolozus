@@ -142,6 +142,10 @@ export const api = {
         body: JSON.stringify({ design_overrides: overrides })
     }),
 
+    generateBlueprint: (productId: string) => fetchJson<ProductSection[]>(`/products/${productId}/blueprint`, {
+        method: "POST"
+    }),
+
     // --- UI CONFIG ---
     getUIConfig: () => fetchJson<{ theme: string }>("/ui/config"),
 
