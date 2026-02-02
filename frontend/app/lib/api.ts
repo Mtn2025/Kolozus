@@ -1,9 +1,17 @@
 import { Fragment, Idea, IdeaVersion, DecisionLog, GraphNode, SearchResult, ReplayResult } from "./types";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const rawUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const BASE_URL = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
 
 async function fetchJson<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const res = await fetch(`${BASE_URL}${endpoint}`, { cache: "no-store", ...options });
+    // Inject Language Header
+    const lang = typeof window !== "undefined" ? localStorage.getItem("kolozus_language") || "en" : "en";
+    const headers = {
+        ...(options?.headers || {}),
+        "Accept-Language": lang
+    } as HeadersInit;
+
+    const res = await fetch(`${BASE_URL}${endpoint}`, { cache: "no-store", ...options, headers });
     if (!res.ok) {
         throw new Error(`API Error ${res.status}: ${res.statusText}`);
     }
@@ -134,7 +142,12 @@ export const api = {
         body: JSON.stringify({ design_overrides: overrides })
     }),
 
-    generateBlueprint: (productId: string) => fetchJson<ProductSection[]>(`/products/${productId}/blueprint`, {
-        method: "POST"
+    // --- UI CONFIG ---
+    getUIConfig: () => fetchJson<{ theme: string }>("/ui/config"),
+
+    updateUIConfig: (theme: string) => fetchJson("/ui/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme })
     })
 };

@@ -33,6 +33,7 @@ class Fragment(BaseModel):
     created_at: datetime = datetime.now()
     embedding: Optional[List[float]] = None
     space_id: Optional[UUID] = None
+    language: str = "en"
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -47,6 +48,7 @@ class Idea(BaseModel):
     # Domain Logic: The Idea's semantic center
     semantic_profile: Optional['SemanticProfile'] = None  # Forward ref or object
     space_id: Optional[UUID] = None
+    language: str = "en"
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -56,8 +58,10 @@ class IdeaVersion(BaseModel):
     version_number: int
     stage: str
     synthesized_text: Optional[str] = None
+    synthesized_text: Optional[str] = None
     reasoning_log: Optional[str] = None
     created_at: datetime = datetime.now()
+    language: str = "en"
 
     model_config = ConfigDict(from_attributes=True)
 

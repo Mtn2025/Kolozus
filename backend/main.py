@@ -19,6 +19,16 @@ def init_db(retries=10, delay=2):
                 conn.commit()
             # Then create all tables
             Base.metadata.create_all(bind=engine)
+            
+            # --- AUTO MIGRATION: Add columns if missing ---
+            # Safe to run on every startup
+            with engine.connect() as conn:
+                print("Checking for schema updates...")
+                conn.execute(text("ALTER TABLE fragments ADD COLUMN IF NOT EXISTS language VARCHAR DEFAULT 'en';"))
+                conn.execute(text("ALTER TABLE ideas ADD COLUMN IF NOT EXISTS language VARCHAR DEFAULT 'en';"))
+                conn.execute(text("ALTER TABLE idea_versions ADD COLUMN IF NOT EXISTS language VARCHAR DEFAULT 'en';"))
+                conn.commit()
+            
             print("DB Schema initialized successfully.")
             return
         except OperationalError as e:

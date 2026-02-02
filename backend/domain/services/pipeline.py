@@ -21,7 +21,7 @@ class CognitivePipeline:
         self.ai = ai_provider
         self.ledger = ledger
 
-    async def process_text(self, text: str, source: str = "manual", mode: str = "default", space_id: Optional[str] = None) -> DecisionResult:
+    async def process_text(self, text: str, source: str = "manual", mode: str = "default", space_id: Optional[str] = None, language: str = "en") -> DecisionResult:
         # 1. Create Raw Fragment (Deterministic ID)
         f_id = uuid5(NAMESPACE_OID, text)
         
@@ -42,7 +42,8 @@ class CognitivePipeline:
             raw_text=text,
             source=source,
             created_at=datetime.utcnow(),
-            space_id=sid
+            space_id=sid,
+            language=language
         )
         
         # 2. Enrich (Embedding)
@@ -80,7 +81,7 @@ class CognitivePipeline:
             
             initial_profile = SemanticProfile(centroid=start_vector, fragment_count=1)
 
-            new_title = await self.ai.synthesize(text, "provisional_title")
+            new_title = await self.ai.synthesize(text, "provisional_title", language=language)
              
             # Deterministic Idea ID based on Creator Fragment
             idea_id = uuid5(NAMESPACE_OID, f"IDEA:{f_id}")
@@ -92,7 +93,9 @@ class CognitivePipeline:
                 status="germinal",
                 created_at=datetime.utcnow(),
                 semantic_profile=initial_profile,
-                space_id=sid
+                semantic_profile=initial_profile,
+                space_id=sid,
+                language=language
             )
             # Save Idea first
             await self.repo.save_idea(new_idea)
@@ -106,7 +109,9 @@ class CognitivePipeline:
                 stage="germinal",
                 synthesized_text=f"Initial seed: {text}",
                 reasoning_log="Genesis from single fragment",
-                created_at=datetime.utcnow()
+                reasoning_log="Genesis from single fragment",
+                created_at=datetime.utcnow(),
+                language=language
             )
             await self.repo.save_idea_version(initial_version)
              
@@ -138,7 +143,7 @@ class CognitivePipeline:
             new_version_num = current_ver_num + 1
             
             # Synthesis of new state
-            synthesis = await self.ai.synthesize(text, f"integrate_into:{target_idea.title_provisional}")
+            synthesis = await self.ai.synthesize(text, f"integrate_into:{target_idea.title_provisional}", language=language)
             
             new_version = IdeaVersion(
                  id=uuid4(),
@@ -147,7 +152,9 @@ class CognitivePipeline:
                  stage=target_idea.status, # Stays same unless trigger
                  synthesized_text=synthesis,
                  reasoning_log=f"Attached fragment: {text[:30]}...",
-                 created_at=datetime.utcnow()
+                 reasoning_log=f"Attached fragment: {text[:30]}...",
+                 created_at=datetime.utcnow(),
+                 language=language
             )
             await self.repo.save_idea_version(new_version)
             

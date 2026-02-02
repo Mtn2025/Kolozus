@@ -40,14 +40,16 @@ class CompositeAIProvider(AIProviderPort):
         provider = self._get_provider(config)
         return await provider.generate_embedding(text)
 
-    async def synthesize(self, context: str, prompt: str, user_id: Optional[UUID] = None) -> str:
+    async def synthesize(self, context: str, prompt: str, user_id: Optional[UUID] = None, language: str = "en") -> str:
         profile = self.config_service.get_config(user_id)
         provider = self._get_provider(profile.drafter)
         
-        full_prompt = f"Context:\n{context}\n\nTask:\n{prompt}"
+        lang_instruction = "INSTRUCTION: Output strictly in English." if language == "en" else "INSTRUCCIÓN: Responde estrictamente en Español."
+        
+        full_prompt = f"{lang_instruction}\n\nContext:\n{context}\n\nTask:\n{prompt}"
         return await provider.generate_text(full_prompt)
 
-    async def generate_json(self, context: str, prompt: str, user_id: Optional[UUID] = None) -> Dict[str, Any]:
+    async def generate_json(self, context: str, prompt: str, user_id: Optional[UUID] = None, language: str = "en") -> Dict[str, Any]:
         profile = self.config_service.get_config(user_id)
         provider = self._get_provider(profile.blueprinter)
         

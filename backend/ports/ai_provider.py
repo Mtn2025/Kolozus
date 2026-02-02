@@ -14,11 +14,11 @@ class AIProviderPort(ABC):
         pass
 
     @abstractmethod
-    async def synthesize(self, context: str, prompt: str) -> str:
+    async def synthesize(self, context: str, prompt: str, language: str = "en") -> str:
         """Generates a text synthesis based on context and prompt."""
         pass
 
     @abstractmethod
-    async def generate_json(self, context: str, prompt: str) -> Dict[str, Any]:
+    async def generate_json(self, context: str, prompt: str, language: str = "en") -> Dict[str, Any]:
         """Generates a structured JSON response based on context and prompt."""
         pass

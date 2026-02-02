@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 from typing import Dict, Any, List
 # from ports.repository import RepositoryPort # Not needed directly if using pipeline
@@ -18,12 +18,16 @@ class IngestRequest(BaseModel):
 @router.post("/", response_model=Dict[str, Any]) # Modified response_model
 async def ingest_fragment(
     request: IngestRequest,
-    pipeline: CognitivePipeline = Depends(get_pipeline) # Modified dependency
+    pipeline: CognitivePipeline = Depends(get_pipeline), # Modified dependency
+    accept_language: str = Header(default="en", alias="Accept-Language") # Extract Language
 ):
     """
     Recibe texto crudo y lo procesa a través del pipeline cognitivo.
     """
-    action = await pipeline.process_text(request.text, request.source, mode=request.mode, space_id=request.space_id)
+    # Normalize language (take first 2 chars, e.g. "es-ES" -> "es")
+    lang_code = accept_language.split(",")[0].strip()[:2].lower()
+    
+    action = await pipeline.process_text(request.text, request.source, mode=request.mode, space_id=request.space_id, language=lang_code)
     return {
         "status": "processed",
         "decision": action.action,
