@@ -36,6 +36,7 @@ services:
       start_period: 40s
     environment:
       - PYTHONUNBUFFERED=1
+      - PORT=${PORT:-8000}
       - DATABASE_URL=postgresql://kolozus:kolozus_strong_password@db:5432/kolozus_main
       - GROQ_API_KEY=${GROQ_API_KEY}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
