@@ -9,4 +9,5 @@ alembic
 python-multipart
 # AI / Utils
 httpx
+requests
 groq
