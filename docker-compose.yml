@@ -3,65 +3,77 @@ version: '3.8'
 services:
   db:
     image: pgvector/pgvector:pg16
-    container_name: kolozus-db
-    expose:
-      - "5432"
-    # ports:
-    #   - "5432:5432"
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: kolozus
-      POSTGRES_PASSWORD: kolozus_strong_password
-      POSTGRES_DB: kolozus_main
+      POSTGRES_USER: ${POSTGRES_USER:-kolozus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Database password required}
+      POSTGRES_DB: ${POSTGRES_DB:-kolozus_main}
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
-    restart: always
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U kolozus -d kolozus_main" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kolozus} -d ${POSTGRES_DB:-kolozus_main}" ]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+    networks:
+      - kolozus_network
 
   backend:
-    build: ./backend
-    container_name: kolozus-backend
-    expose:
-      - "8001"
-    # ports:
-    #   - "8001:8001"
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:${PORT}/health || exit 1" ]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 40s
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
     environment:
-      - PYTHONUNBUFFERED=1
-      - PORT=${PORT:-8001}
-      - DATABASE_URL=postgresql://kolozus:kolozus_strong_password@db:5432/kolozus_main
-      - GROQ_API_KEY=${GROQ_API_KEY}
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      - AI_PROVIDER=composite
-    volumes:
-      - ./backend:/app
+      # App Config
+      PORT: ${BACKEND_PORT:-8000}
+      PYTHONUNBUFFERED: 1
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-kolozus}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-kolozus_main}
+      # AI Providers
+      GROQ_API_KEY: ${GROQ_API_KEY:?Groq API key required}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      AI_PROVIDER: ${AI_PROVIDER:-composite}
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:${BACKEND_PORT:-8000}/health || exit 1" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - kolozus_network
 
   frontend:
-    build: ./frontend
-    container_name: kolozus-frontend
-    expose:
-      - "3000"
-    # ports:
-    #  - "3000:3000"
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    restart: unless-stopped
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      NODE_ENV: production
+      PORT: ${FRONTEND_PORT:-3000}
     depends_on:
       backend:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:${FRONTEND_PORT:-3000} || exit 1" ]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - kolozus_network
+
+volumes:
+  postgres_data:
+    driver: local
 
 networks:
-  default:
+  kolozus_network:
     driver: bridge

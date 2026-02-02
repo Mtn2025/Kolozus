@@ -2,6 +2,7 @@
 .DS_Store
 *.log
 .env
+.env.local
 
 # Config
 ai_config.json
@@ -24,6 +25,9 @@ final_smoke_test.py
 # Backup & Snapshot Files
 backup_*.json
 snapshot_*.json
+*.old
+docker-compose.yml.old
+Dockerfile.old
 
 # Node / Next.js
 node_modules/
@@ -34,4 +38,5 @@ coverage/
 
 # Docker
 data/
+
 

@@ -1,0 +1,19 @@
+version: '3.8'
+
+# Development overrides
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  backend:
+    volumes:
+      - ./backend:/app
+    environment:
+      - DEBUG=1
+    command: sh -c "uvicorn main:app --host 0.0.0.0 --port ${BACKEND_PORT:-8000} --reload"
+
+  frontend:
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
