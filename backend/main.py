@@ -3,8 +3,23 @@ from fastapi.middleware.cors import CORSMiddleware # Added this import for CORSM
 from infrastructure.database import engine, Base
 from adapters.api.routers import ingestion, pipeline, query, audit, trash, spaces, products, ai_config, ui_config
 
-# Create Tables (Simple "Walking Skeleton" approach)
-Base.metadata.create_all(bind=engine)
+import time
+from sqlalchemy.exc import OperationalError
+
+# Robust DB Initialization
+def init_db(retries=10, delay=2):
+    for i in range(retries):
+        try:
+            print(f"Attempting DB connection ({i+1}/{retries})...")
+            Base.metadata.create_all(bind=engine)
+            print("DB Schema initialized successfully.")
+            return
+        except OperationalError as e:
+            print(f"DB connection failed: {e}. Retrying in {delay}s...")
+            time.sleep(delay)
+    raise Exception("Could not connect to Database after multiple attempts.")
+
+init_db()
 
 app = FastAPI(
     title="Kolozus API",

@@ -30,10 +30,12 @@ services:
     #   - "8000:8000"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     environment:
+      - PYTHONUNBUFFERED=1
       - DATABASE_URL=postgresql://kolozus:kolozus_strong_password@db:5432/kolozus_main
       - GROQ_API_KEY=${GROQ_API_KEY}
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
