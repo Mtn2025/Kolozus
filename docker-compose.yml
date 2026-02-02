@@ -72,11 +72,15 @@ services:
       start_period: 30s
     networks:
       - kolozus_network
+    expose:
+      - "3000"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.kolozus-frontend.rule=Host(`kolozus.ubrokers.mx`)"
       - "traefik.http.routers.kolozus-frontend.entrypoints=http"
+      - "traefik.http.routers.kolozus-frontend.service=kolozus-frontend"
       - "traefik.http.services.kolozus-frontend.loadbalancer.server.port=3000"
+      - "coolify.port=3000"
 
 volumes:
   postgres_data:
