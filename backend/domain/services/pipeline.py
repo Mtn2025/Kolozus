@@ -93,7 +93,6 @@ class CognitivePipeline:
                 status="germinal",
                 created_at=datetime.utcnow(),
                 semantic_profile=initial_profile,
-                semantic_profile=initial_profile,
                 space_id=sid,
                 language=language
             )
