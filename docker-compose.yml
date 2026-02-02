@@ -4,8 +4,10 @@ services:
   db:
     image: pgvector/pgvector:pg16
     container_name: kolozus-db
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
+    # ports:
+    #   - "5432:5432"
     environment:
       POSTGRES_USER: kolozus
       POSTGRES_PASSWORD: kolozus_strong_password
@@ -22,8 +24,10 @@ services:
   backend:
     build: ./backend
     container_name: kolozus-backend
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
+    # ports:
+    #   - "8000:8000"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
       interval: 30s
@@ -45,8 +49,10 @@ services:
   frontend:
     build: ./frontend
     container_name: kolozus-frontend
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
+    # ports:
+    #  - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
     depends_on:
