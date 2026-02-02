@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware # Added this import for CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from infrastructure.database import engine, Base
 from adapters.api.routers import ingestion, pipeline, query, audit, trash, spaces, products, ai_config, ui_config
 
@@ -19,12 +20,19 @@ def init_db(retries=10, delay=2):
             time.sleep(delay)
     raise Exception("Could not connect to Database after multiple attempts.")
 
-init_db()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Connect to DB
+    init_db()
+    yield
+    # Shutdown: (Optional cleanup)
+    pass
 
 app = FastAPI(
     title="Kolozus API",
     description="Cognitive Engine for Evolutionary Knowledge",
-    version="0.1.0"
+    version="0.1.0",
+    lifespan=lifespan
 )
 
 # CORS (Allow Frontend)
