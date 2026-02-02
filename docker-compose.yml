@@ -29,11 +29,14 @@ services:
     # ports:
     #   - "8000:8000"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
+      test: [ "CMD-SHELL", "curl -f http://localhost:${PORT:-8000}/ || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     environment:
       - PYTHONUNBUFFERED=1
       - DATABASE_URL=postgresql://kolozus:kolozus_strong_password@db:5432/kolozus_main
