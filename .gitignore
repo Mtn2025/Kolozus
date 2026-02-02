@@ -14,6 +14,17 @@ venv/
 .venv/
 .pytest_cache/
 
+# Test & Debug Scripts
+*_test.py
+verify_*.py
+simulate_*.py
+stress_test.py
+final_smoke_test.py
+
+# Backup & Snapshot Files
+backup_*.json
+snapshot_*.json
+
 # Node / Next.js
 node_modules/
 .next/
@@ -23,3 +34,4 @@ coverage/
 
 # Docker
 data/
+

@@ -57,3 +57,8 @@ app.include_router(ui_config.router, prefix="/api/ui", tags=["UI Configuration"]
 @app.get("/")
 async def root():
     return {"message": "Kolozus Brain is Alive"}
+
+@app.get("/health")
+async def health():
+    """Lightweight health check endpoint for container orchestration"""
+    return {"status": "healthy"}

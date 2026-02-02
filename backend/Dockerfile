@@ -10,12 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Expose port
-# Expose port (Documentation only, actual port determined by ENV)
+# Expose port (documentation only, actual port determined by Coolify via PORT env var)
 EXPOSE 8000
-
-# Set default port
-ENV PORT=8000
 
 # Command to run the application using shell to expand variables
 CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT} --reload"]
