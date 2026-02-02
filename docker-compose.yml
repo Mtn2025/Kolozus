@@ -76,9 +76,17 @@ services:
       - "3000"
     labels:
       - "traefik.enable=true"
+      # HTTP Router
       - "traefik.http.routers.kolozus-frontend.rule=Host(`kolozus.ubrokers.mx`)"
       - "traefik.http.routers.kolozus-frontend.entrypoints=http"
       - "traefik.http.routers.kolozus-frontend.service=kolozus-frontend"
+      # HTTPS Router
+      - "traefik.http.routers.kolozus-frontend-https.rule=Host(`kolozus.ubrokers.mx`)"
+      - "traefik.http.routers.kolozus-frontend-https.entrypoints=https"
+      - "traefik.http.routers.kolozus-frontend-https.service=kolozus-frontend"
+      - "traefik.http.routers.kolozus-frontend-https.tls=true"
+      - "traefik.http.routers.kolozus-frontend-https.tls.certresolver=letsencrypt"
+      # Service
       - "traefik.http.services.kolozus-frontend.loadbalancer.server.port=3000"
       - "coolify.port=3000"
 
