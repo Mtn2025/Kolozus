@@ -39,7 +39,7 @@ export function KnowledgeGraph() {
     const { theme } = useTheme()
     const [data, setData] = useState<GraphData>({ nodes: [], links: [] })
     const [isFullscreen, setIsFullscreen] = useState(false)
-    const fgRef = useRef<any>()
+    const fgRef = useRef<any>(null)
 
     // Colors based on theme
     const isDark = theme === "dark" || theme === "onyx" || theme === "bloomberg" || theme === "obsidian"
