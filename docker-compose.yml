@@ -16,8 +16,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-    networks:
-      - kolozus_network
 
   backend:
     build:
@@ -43,8 +41,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
-    networks:
-      - kolozus_network
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
@@ -68,8 +64,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-    networks:
-      - kolozus_network
     labels:
       - "traefik.enable=true"
       - "coolify.port=3000"
@@ -77,7 +71,3 @@ services:
 volumes:
   postgres_data:
     driver: local
-
-networks:
-  kolozus_network:
-    driver: bridge
