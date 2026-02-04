@@ -54,6 +54,7 @@ services:
       - "traefik.http.middlewares.kolozus-backend-strip.stripprefix.prefixes=/api"
       - "traefik.http.routers.kolozus-backend.middlewares=kolozus-backend-strip"
       - "traefik.http.services.kolozus-backend.loadbalancer.server.port=8000"
+      - "traefik.http.routers.kolozus-backend.priority=200"
       - "traefik.docker.network=coolify"
 
   frontend:
