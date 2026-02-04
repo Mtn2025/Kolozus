@@ -50,10 +50,10 @@ services:
       - default
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`kolozus.ubrokers.mx`) && PathPrefix(`/api`)"
-      - "traefik.http.middlewares.backend-strip.stripprefix.prefixes=/api"
-      - "traefik.http.routers.backend.middlewares=backend-strip"
-      - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      - "traefik.http.routers.kolozus-backend.rule=Host(`kolozus.ubrokers.mx`) && PathPrefix(`/api`)"
+      - "traefik.http.middlewares.kolozus-backend-strip.stripprefix.prefixes=/api"
+      - "traefik.http.routers.kolozus-backend.middlewares=kolozus-backend-strip"
+      - "traefik.http.services.kolozus-backend.loadbalancer.server.port=8000"
       - "traefik.docker.network=coolify"
 
   frontend:
