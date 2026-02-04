@@ -42,7 +42,7 @@ export function KnowledgeGraph() {
     const fgRef = useRef<any>(null)
 
     // Colors based on theme
-    const isDark = theme === "dark" || theme === "onyx" || theme === "bloomberg" || theme === "obsidian"
+    const isDark = theme === "dark" || theme === "midnight" || theme === "carbon" || theme?.includes("dark")
     const bgColor = "rgba(0,0,0,0)" // Transparent to let Card bg show
     const nodeColor = isDark ? "#fff" : "#333"
     const linkColor = isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)"
