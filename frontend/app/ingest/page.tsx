@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { IngestForm } from "@/components/ingest/IngestForm"
 import { IngestResults } from "@/components/ingest/IngestResults"
 
@@ -19,7 +19,9 @@ export default function IngestPage() {
                 {result ? (
                     <IngestResults data={result} onReset={() => setResult(null)} />
                 ) : (
-                    <IngestForm onSuccess={setResult} />
+                    <Suspense fallback={<div>Cargando formulario...</div>}>
+                        <IngestForm onSuccess={setResult} />
+                    </Suspense>
                 )}
             </div>
         </div>
