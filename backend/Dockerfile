@@ -7,6 +7,9 @@ WORKDIR /app
 
 # Install Python dependencies
 COPY requirements.txt .
+# Install curl for healthchecks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
 # Copy application code
