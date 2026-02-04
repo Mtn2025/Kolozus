@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useMemo } from "react"
 import dynamic from "next/dynamic"
 import { useTheme } from "next-themes"
-import { ForceGraph2D } from "react-force-graph-2d"
+
 import { Card } from "@/components/ui/card"
 import { api } from "@/services/api"
 import { Maximize, Minimize } from "lucide-react"
