@@ -43,12 +43,13 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    expose:
+      - "8000"
     networks:
       - coolify
       - default
     labels:
       - "traefik.enable=true"
-      - "traefik.http.services.backend.loadbalancer.server.port=8000"
 
   frontend:
     build:
@@ -69,13 +70,13 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    expose:
+      - "3000"
     networks:
       - coolify
       - default
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`kolozus.ubrokers.mx`)"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
       - "coolify.port=3000"
 
 volumes:
