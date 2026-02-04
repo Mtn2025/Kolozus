@@ -54,6 +54,7 @@ services:
       - "traefik.http.middlewares.backend-strip.stripprefix.prefixes=/api"
       - "traefik.http.routers.backend.middlewares=backend-strip"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      - "traefik.docker.network=coolify"
 
   frontend:
     build:
@@ -83,6 +84,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "coolify.port=3000"
+      - "traefik.docker.network=coolify"
 
 volumes:
   postgres_data:
