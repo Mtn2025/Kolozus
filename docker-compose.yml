@@ -84,8 +84,7 @@ services:
       - default
     labels:
       - "traefik.enable=true"
-      - "coolify.port=3000"
-      - "traefik.docker.network=coolify"
+      - "coolify.ignore"
 
 volumes:
   postgres_data:
