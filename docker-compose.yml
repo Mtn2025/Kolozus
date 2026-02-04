@@ -24,8 +24,6 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
-    ports:
-      - "${BACKEND_PORT:-8000}:8000"
     environment:
       # App Config
       PORT: ${BACKEND_PORT:-8000}
@@ -33,8 +31,8 @@ services:
       # Database
       DATABASE_URL: postgresql://${POSTGRES_USER:-kolozus}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-kolozus_main}
       # AI Providers
-      GROQ_API_KEY: ${GROQ_API_KEY:-mock_unused}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
       AI_PROVIDER: ${AI_PROVIDER:-composite}
     depends_on:
       db:
@@ -45,8 +43,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - kolozus_network
     labels:
@@ -58,7 +54,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -74,8 +70,6 @@ services:
       start_period: 30s
     networks:
       - kolozus_network
-    ports:
-      - "${FRONTEND_PORT:-3000}:3000"
     labels:
       - "traefik.enable=true"
       - "coolify.port=3000"
