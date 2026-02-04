@@ -36,3 +36,14 @@ async def get_space(
     if not space:
         raise HTTPException(status_code=404, detail="Space not found")
     return space
+
+@router.delete("/{space_id}", response_model=Dict[str, bool])
+async def delete_space(
+    space_id: UUID,
+    repo: RepositoryPort = Depends(get_repository)
+):
+    """Delete a knowledge space."""
+    success = repo.delete_space(space_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Space not found or could not be deleted")
+    return {"success": True}

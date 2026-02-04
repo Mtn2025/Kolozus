@@ -1,8 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from infrastructure.database import engine, Base
-from adapters.api.routers import ingestion, pipeline, query, audit, trash, spaces, products, ai_config, ui_config
+from adapters.api.routers import ingestion, pipeline, query, audit, trash, spaces, products, ai_config, ui_config, stats
+from domain.exceptions import DomainError, EmbeddingError, ModelError, DatabaseError, NetworkError
 
 import time
 from sqlalchemy.exc import OperationalError
@@ -51,10 +53,28 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Exception Handlers
+@app.exception_handler(DomainError)
+async def domain_exception_handler(request: Request, exc: DomainError):
+    status_code = 500
+    if isinstance(exc, NetworkError):
+        status_code = 503
+    elif isinstance(exc, DatabaseError):
+        status_code = 500
+    
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "error": exc.__class__.__name__,
+            "message": exc.message,
+            "code": exc.code
+        },
+    )
+
 # CORS (Allow Frontend)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # For dev
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -67,8 +87,9 @@ app.include_router(audit.router)
 app.include_router(trash.router)
 app.include_router(spaces.router)
 app.include_router(products.router)
+app.include_router(stats.router)
 app.include_router(ai_config.router, prefix="/api/ai", tags=["AI Configuration"])
-app.include_router(ui_config.router, prefix="/api/ui", tags=["UI Configuration"])
+app.include_router(ui_config.router, prefix="/ui", tags=["UI Configuration"])
 
 @app.get("/")
 async def root():

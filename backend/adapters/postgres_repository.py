@@ -44,6 +44,15 @@ class PostgresRepository(RepositoryPort):
         self.db.commit()
         self.db.refresh(space)
         return Space.model_validate(space)
+    
+    def delete_space(self, space_id: UUID) -> bool:
+        stmt = select(SpaceModel).where(SpaceModel.id == space_id)
+        space = self.db.execute(stmt).scalar_one_or_none()
+        if space:
+            self.db.delete(space)
+            self.db.commit()
+            return True
+        return False
     # --- END SPACES ---
 
     # --- PRODUCTS ---
@@ -98,6 +107,15 @@ class PostgresRepository(RepositoryPort):
         result = self.db.execute(stmt)
         self.db.commit()
         return result.rowcount > 0
+
+    def delete_product(self, product_id: UUID) -> bool:
+        stmt = select(ProductModel).where(ProductModel.id == product_id)
+        product = self.db.execute(stmt).scalar_one_or_none()
+        if product:
+            self.db.delete(product)
+            self.db.commit()
+            return True
+        return False
 
     def add_section(self, section: ProductSection) -> ProductSection:
         db_section = ProductSectionModel(

@@ -1,0 +1,53 @@
+{
+    "cors_policy": {
+        "allow_origins": [
+            "http://localhost:3000"
+        ],
+        "allow_credentials": true,
+        "allow_methods": [
+            "*"
+        ],
+        "allow_headers": [
+            "*"
+        ]
+    },
+    "verification_results": [
+        {
+            "route": "/",
+            "method": "GET",
+            "status": 200,
+            "cors_header": "http://localhost:3000"
+        },
+        {
+            "route": "/health",
+            "method": "GET",
+            "status": 200,
+            "cors_header": "http://localhost:3000"
+        },
+        {
+            "route": "/ingest/",
+            "method": "POST",
+            "status": 200,
+            "cors_header": "http://localhost:3000"
+        },
+        {
+            "route": "/products/",
+            "method": "POST",
+            "status": 200,
+            "cors_header": "http://localhost:3000"
+        },
+        {
+            "route": "/query/search",
+            "method": "POST",
+            "status": 200,
+            "cors_header": "http://localhost:3000"
+        },
+        {
+            "route": "/ui/config",
+            "method": "GET",
+            "status": 200,
+            "cors_header": "http://localhost:3000"
+        }
+    ],
+    "note": "Full list available in audit logs. All endpoints passed."
+}

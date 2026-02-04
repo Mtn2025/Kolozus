@@ -47,7 +47,8 @@ from fastapi.responses import HTMLResponse
 @router.post("/", response_model=Product)
 async def create_product(
     payload: CreateProductRequest,
-    repo: RepositoryPort = Depends(get_repository)
+    repo: RepositoryPort = Depends(get_repository),
+    ai: AIProviderPort = Depends(get_ai_provider)
 ):
     """Create a new editorial product draft with initial blueprint."""
     # 1. Create Product
@@ -62,16 +63,10 @@ async def create_product(
     saved_product = repo.create_product(product)
 
     # 2. Generate Blueprint
-    sections = Blueprinter.generate_structure(saved_product)
-
-    # 3. Persist Sections
-    # Note: In a real app this would be a transaction or batch insert.
-    for section in sections:
-        saved_section = repo.add_section(section)
-        if section.subsections:
-            for subsec in section.subsections:
-                repo.add_section(subsec)
+    bp = Blueprinter(repo, ai)
+    await bp.generate_structure(saved_product.id) # method uses repo to save sections
     
+    # 3. Reload to return full object
     return repo.get_product(saved_product.id)
 
 @router.get("/", response_model=List[Product])
@@ -91,6 +86,17 @@ async def get_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
+
+@router.delete("/{product_id}", response_model=Dict[str, bool])
+async def delete_product(
+    product_id: UUID,
+    repo: RepositoryPort = Depends(get_repository)
+):
+    """Delete a product."""
+    success = repo.delete_product(product_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"success": True}
 
 @router.post("/{product_id}/sections", response_model=ProductSection)
 async def add_section(

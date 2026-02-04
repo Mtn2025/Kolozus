@@ -1,216 +1,248 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@plugin "tailwindcss-animate";
+@layer base {
+  :root {
+    /* 1. EVO ENTERPRISE (Default / Light) */
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
 
-@custom-variant dark (&:is(.dark *));
+  .dark {
+    /* DEFAULT DARK (Slate) */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
 
-@theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  /* 2. BLOOMBERG TERMINAL */
+  .bloomberg {
+    --background: 200 10% 8%;
+    /* Almost Black */
+    --foreground: 35 100% 55%;
+    /* Amber/Orange Text */
+    --card: 200 10% 12%;
+    --card-foreground: 35 100% 55%;
+    --popover: 200 10% 10%;
+    --popover-foreground: 35 100% 55%;
+    --primary: 35 100% 50%;
+    --primary-foreground: 200 10% 8%;
+    --secondary: 200 10% 16%;
+    --secondary-foreground: 35 100% 55%;
+    --muted: 200 10% 16%;
+    --muted-foreground: 35 60% 40%;
+    --accent: 170 100% 40%;
+    /* Teal Accent */
+    --accent-foreground: 200 10% 8%;
+    --destructive: 0 80% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 35 100% 20%;
+    --input: 200 10% 16%;
+    --ring: 35 100% 50%;
+  }
+
+  /* 3. ONYX GLASS (Cyberpunk/Neon) */
+  .onyx {
+    --background: 260 40% 5%;
+    /* Deep Purple Black */
+    --foreground: 260 20% 90%;
+    --card: 260 40% 8%;
+    /* Glassy */
+    --card-foreground: 260 20% 90%;
+    --popover: 260 40% 8%;
+    --popover-foreground: 260 20% 90%;
+    --primary: 310 100% 60%;
+    /* Neon Pink */
+    --primary-foreground: 260 40% 5%;
+    --secondary: 260 30% 15%;
+    --secondary-foreground: 310 100% 60%;
+    --muted: 260 30% 15%;
+    --muted-foreground: 260 20% 60%;
+    --accent: 180 100% 60%;
+    /* Neon Cyan */
+    --accent-foreground: 260 40% 5%;
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 260 40% 98%;
+    --border: 260 30% 20%;
+    --input: 260 30% 20%;
+    --ring: 310 100% 60%;
+  }
+
+  /* 4. OBSIDIAN GOLD */
+  .obsidian {
+    --background: 0 0% 5%;
+    /* True Black */
+    --foreground: 45 30% 90%;
+    /* Warm White */
+    --card: 0 0% 8%;
+    --card-foreground: 45 30% 90%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 45 30% 90%;
+    --primary: 45 80% 50%;
+    /* Gold */
+    --primary-foreground: 0 0% 5%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 45 80% 50%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 45 80% 50%;
+    --destructive: 0 70% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 45 20% 20%;
+    --input: 0 0% 12%;
+    --ring: 45 80% 50%;
+  }
+
+  /* 5. ILLUMINATE STUDIO (High Contrast BW) */
+  .illuminate {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 98%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 92%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 0 0% 92%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 0%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 0%;
+    --radius: 0;
+    /* Sharp corners */
+  }
+
+  /* 6. ROSE & STONE */
+  .rose {
+    --background: 20 20% 96%;
+    /* Warm Stone */
+    --foreground: 340 10% 20%;
+    /* Deep Rose Grey */
+    --card: 20 20% 98%;
+    --card-foreground: 340 10% 20%;
+    --popover: 20 20% 98%;
+    --popover-foreground: 340 10% 20%;
+    --primary: 340 40% 50%;
+    /* Antique Rose */
+    --primary-foreground: 20 20% 98%;
+    --secondary: 20 20% 90%;
+    --secondary-foreground: 340 40% 40%;
+    --muted: 20 20% 90%;
+    --muted-foreground: 340 10% 60%;
+    --accent: 20 30% 85%;
+    --accent-foreground: 340 40% 50%;
+    --destructive: 0 60% 60%;
+    --destructive-foreground: 20 20% 98%;
+    --border: 20 10% 85%;
+    --input: 20 10% 85%;
+    --ring: 340 40% 50%;
+    --radius: 1rem;
+    /* Softer */
+  }
+
+  /* 7. CANVAS PAPER */
+  .canvas {
+    --background: 40 30% 96%;
+    /* Cream Paper */
+    --foreground: 30 10% 15%;
+    /* Ink Black */
+    --card: 40 30% 94%;
+    --card-foreground: 30 10% 15%;
+    --popover: 40 30% 94%;
+    --popover-foreground: 30 10% 15%;
+    --primary: 200 60% 40%;
+    /* Fountain Pen Blue */
+    --primary-foreground: 40 30% 96%;
+    --secondary: 40 20% 90%;
+    --secondary-foreground: 200 60% 40%;
+    --muted: 40 20% 88%;
+    --muted-foreground: 30 10% 50%;
+    --accent: 40 20% 90%;
+    --accent-foreground: 30 10% 15%;
+    --destructive: 0 50% 50%;
+    --destructive-foreground: 40 30% 96%;
+    --border: 40 10% 85%;
+    --input: 40 10% 85%;
+    --ring: 200 60% 40%;
+    --radius: 0.2rem;
+  }
+
+  /* 8. ZEN GARDEN */
+  .zen {
+    --background: 120 10% 94%;
+    /* Mist Green */
+    --foreground: 140 20% 20%;
+    /* Deep Forest */
+    --card: 120 10% 96%;
+    --card-foreground: 140 20% 20%;
+    --popover: 120 10% 96%;
+    --popover-foreground: 140 20% 20%;
+    --primary: 140 30% 40%;
+    /* Bamboo */
+    --primary-foreground: 120 10% 98%;
+    --secondary: 120 15% 88%;
+    --secondary-foreground: 140 30% 40%;
+    --muted: 120 15% 88%;
+    --muted-foreground: 140 15% 50%;
+    --accent: 120 20% 85%;
+    --accent-foreground: 140 20% 20%;
+    --destructive: 0 40% 50%;
+    --destructive-foreground: 120 10% 98%;
+    --border: 140 10% 85%;
+    --input: 140 10% 85%;
+    --ring: 140 30% 40%;
+    --radius: 0.75rem;
+  }
 }
 
-:root {
-  /* DEFAULT: EVO (Executive / Blue-Slate) */
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --primary: 221 83% 53%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222 47% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215 16% 47%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222 47% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 221 83% 53%;
-  --radius: 0.5rem;
-  --sidebar-bg: 222 47% 11%;
-  --sidebar-fg: 210 40% 98%;
-  --sidebar-border: 217 33% 17%;
-}
+@layer base {
+  * {
+    @apply border-border;
+  }
 
-/* --- 1. EXECUTIVE / CORPORATE --- */
-
-/* THEME: EVO (Enterprise Default) */
-[data-theme="evo"] {
-  --background: 220 14% 96%;
-  --foreground: 220 13% 18%;
-  --card: 0 0% 100%;
-  --card-foreground: 220 13% 18%;
-  --primary: 226 70% 55%;
-  --primary-foreground: 0 0% 100%;
-  --border: 220 13% 91%;
-  --muted: 220 14% 96%;
-  --radius: 0.5rem;
-  --sidebar-bg: 230 15% 12%;
-  --sidebar-fg: 226 70% 95%;
-  --sidebar-border: 230 15% 16%;
-}
-
-/* THEME: FINANCE (Bloomberg / Teal) */
-[data-theme="finance"] {
-  --background: 200 20% 98%;
-  --foreground: 200 50% 10%;
-  --card: 0 0% 100%;
-  --card-foreground: 200 50% 10%;
-  --primary: 170 80% 30%; /* Deep Teal */
-  --primary-foreground: 0 0% 100%;
-  --secondary: 200 10% 90%;
-  --secondary-foreground: 200 50% 10%;
-  --border: 200 20% 90%;
-  --muted: 200 20% 96%;
-  --radius: 0px; /* Sharp corners for data */
-  --sidebar-bg: 200 30% 15%;
-  --sidebar-fg: 170 80% 80%;
-  --sidebar-border: 200 30% 20%;
-}
-
-/* --- 2. LUXURY / HIGH-END --- */
-
-/* THEME: ONYX (Dark Glass / Cyber) */
-[data-theme="onyx"] {
-  --background: 240 10% 4%;
-  --foreground: 210 40% 98%;
-  --card: 240 10% 6%;
-  --card-foreground: 210 40% 98%;
-  --primary: 263 70% 50%; /* Neon Purple */
-  --primary-foreground: 210 40% 98%;
-  --border: 240 3% 15%;
-  --muted: 240 3% 15%;
-  --muted-foreground: 240 5% 65%;
-  --radius: 1rem;
-  --sidebar-bg: 240 10% 4%;
-  --sidebar-fg: 210 40% 98%;
-  --sidebar-border: 240 3% 15%;
-}
-
-/* THEME: OBSIDIAN (Matte Black / Gold) */
-[data-theme="obsidian"] {
-  --background: 0 0% 5%;
-  --foreground: 45 20% 90%; /* Warm White */
-  --card: 0 0% 8%;
-  --card-foreground: 45 20% 90%;
-  --primary: 45 60% 50%; /* Muted Gold */
-  --primary-foreground: 0 0% 10%;
-  --border: 0 0% 15%;
-  --muted: 0 0% 12%;
-  --muted-foreground: 0 0% 60%;
-  --radius: 0.2rem;
-  --sidebar-bg: 0 0% 5%;
-  --sidebar-fg: 45 60% 50%;
-  --sidebar-border: 0 0% 15%;
-}
-
-/* --- 3. CREATIVE / PRODUCT --- */
-
-/* THEME: ILLUMINATE (Studio / Vercel) */
-[data-theme="illuminate"] {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 0%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 0%;
-  --primary: 0 0% 0%;
-  --primary-foreground: 0 0% 100%;
-  --border: 0 0% 90%;
-  --muted: 0 0% 96%;
-  --radius: 0.75rem;
-  --sidebar-bg: 0 0% 100%;
-  --sidebar-fg: 0 0% 0%;
-  --sidebar-border: 0 0% 90%;
-}
-
-/* THEME: ROSE (Soft / Elegant) */
-[data-theme="rose"] {
-  --background: 0 20% 99%; /* Very faint pink */
-  --foreground: 340 20% 20%;
-  --card: 0 0% 100%;
-  --card-foreground: 340 20% 20%;
-  --primary: 340 60% 60%; /* Rose */
-  --primary-foreground: 0 0% 100%;
-  --border: 340 20% 92%;
-  --muted: 340 20% 97%;
-  --radius: 1rem;
-  --sidebar-bg: 0 20% 98%;
-  --sidebar-fg: 340 60% 40%;
-  --sidebar-border: 340 20% 90%;
-}
-
-/* --- 4. MINIMAL / FOCUS --- */
-
-/* THEME: CANVAS (Editorial / Notion) */
-[data-theme="canvas"] {
-  --background: 35 30% 98%; /* Warm Paper */
-  --foreground: 35 10% 15%;
-  --card: 35 30% 98%;
-  --card-foreground: 35 10% 15%;
-  --primary: 35 10% 20%;
-  --primary-foreground: 35 30% 98%;
-  --border: 35 15% 90%;
-  --muted: 35 15% 95%;
-  --radius: 0px;
-  --sidebar-bg: 35 20% 96%;
-  --sidebar-fg: 35 10% 40%;
-  --sidebar-border: 0 0% 0% 0%;
-}
-
-/* THEME: ZEN (Nature / Sage) */
-[data-theme="zen"] {
-  --background: 120 10% 97%; /* Sage Mist */
-  --foreground: 120 20% 15%;
-  --card: 0 0% 100%;
-  --card-foreground: 120 20% 15%;
-  --primary: 120 30% 40%; /* Forest Green */
-  --primary-foreground: 120 10% 95%;
-  --border: 120 15% 88%;
-  --muted: 120 15% 92%;
-  --radius: 0.5rem;
-  --sidebar-bg: 120 20% 95%;
-  --sidebar-fg: 120 30% 30%;
-  --sidebar-border: 120 15% 85%;
-}
-
-
-/* UTILITY MAP */
-@theme inline {
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
-  --color-sidebar: hsl(var(--sidebar-bg));
-  --color-sidebar-foreground: hsl(var(--sidebar-fg));
-  --color-sidebar-border: hsl(var(--sidebar-border));
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-}
-
-body {
-  @apply bg-background text-foreground transition-colors duration-500 font-sans;
-}
-
-/* Glassmorphism utility */
-.glass {
-  @apply bg-background/60 backdrop-blur-xl border border-border/50;
+  body {
+    @apply bg-background text-foreground;
+  }
 }

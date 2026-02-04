@@ -93,6 +93,7 @@ async def get_knowledge_graph(
             "weight": idea.semantic_profile.fragment_count if idea.semantic_profile else 0
         }
         graph_nodes.append(node)
+    return graph_nodes
 @router.post("/search", response_model=List[Dict[str, Any]])
 async def search_knowledge(
     payload: Dict[str, str], # {"query": "text"}

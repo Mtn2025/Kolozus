@@ -44,3 +44,21 @@ class PostgresDecisionLedger(DecisionLedgerPort):
             }
             for log in logs
         ]
+
+    async def get_recent_logs(self, limit: int = 50) -> List[dict]:
+        logs = self.db.query(DecisionLogModel).order_by(
+            DecisionLogModel.timestamp.desc()
+        ).limit(limit).all()
+
+        return [
+            {
+                "id": str(log.id),
+                "timestamp": log.timestamp.isoformat(),
+                "fragment_id": str(log.fragment_id) if log.fragment_id else None,
+                "action": log.action,
+                "target": str(log.target_idea_id) if log.target_idea_id else None,
+                "reasoning": log.reasoning,
+                "confidence": log.confidence
+            }
+            for log in logs
+        ]

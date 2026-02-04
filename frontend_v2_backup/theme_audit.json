@@ -1,0 +1,115 @@
+{
+    "system_status": "CRITICAL_CONFLICT",
+    "summary": "Two conflicting theme systems detected. 'Settings' page uses 'next-themes' (Working). 'Header Switcher' uses custom 'ThemeContext' (Broken).",
+    "categories": [
+        {
+            "name": "Executive",
+            "themes": [
+                {
+                    "name": "Evo Enterprise",
+                    "key": "evo",
+                    "exists_in_ts": true,
+                    "exists_in_css": true,
+                    "displayed_in_settings": true,
+                    "displayed_in_header": false,
+                    "issues": [
+                        "Header Switcher fails to render (uses t.id instead of t.key)",
+                        "Custom Context logic incompatible with Array definition"
+                    ]
+                },
+                {
+                    "name": "Bloomberg Terminal",
+                    "key": "finance",
+                    "exists_in_ts": true,
+                    "exists_in_css": true,
+                    "displayed_in_settings": true,
+                    "displayed_in_header": false,
+                    "issues": [
+                        "Header Switcher fails to render (uses t.id instead of t.key)"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Luxury",
+            "themes": [
+                {
+                    "name": "Onyx Glass",
+                    "key": "onyx",
+                    "exists_in_ts": true,
+                    "exists_in_css": true,
+                    "displayed_in_settings": true,
+                    "displayed_in_header": false,
+                    "issues": []
+                },
+                {
+                    "name": "Obsidian Gold",
+                    "key": "obsidian",
+                    "exists_in_ts": true,
+                    "exists_in_css": true,
+                    "displayed_in_settings": true,
+                    "displayed_in_header": false,
+                    "issues": []
+                }
+            ]
+        },
+        {
+            "name": "Creative",
+            "themes": [
+                {
+                    "name": "Illuminate Studio",
+                    "key": "illuminate",
+                    "exists_in_ts": true,
+                    "exists_in_css": true,
+                    "displayed_in_settings": true,
+                    "displayed_in_header": false,
+                    "issues": []
+                },
+                {
+                    "name": "Rose & Stone",
+                    "key": "rose",
+                    "exists_in_ts": true,
+                    "exists_in_css": true,
+                    "displayed_in_settings": true,
+                    "displayed_in_header": false,
+                    "issues": []
+                }
+            ]
+        },
+        {
+            "name": "Minimal",
+            "themes": [
+                {
+                    "name": "Canvas Paper",
+                    "key": "canvas",
+                    "exists_in_ts": true,
+                    "exists_in_css": true,
+                    "displayed_in_settings": true,
+                    "displayed_in_header": false,
+                    "issues": []
+                },
+                {
+                    "name": "Zen Garden",
+                    "key": "zen",
+                    "exists_in_ts": true,
+                    "exists_in_css": true,
+                    "displayed_in_settings": true,
+                    "displayed_in_header": false,
+                    "issues": []
+                }
+            ]
+        }
+    ],
+    "technical_audit": {
+        "definitions": "lib/themes.ts (Array of objects, correct).",
+        "css": "app/globals.css (Data Attributes with HSL, correct).",
+        "settings_page": "Uses 'next-themes'. Works correctly with globals.css.",
+        "header_switcher": "Uses 'context/ThemeContext.tsx'. BROKEN.",
+        "broken_logic": [
+            "ThemeContext expects THEMES to be an Object (it is an Array).",
+            "ThemeContext tries to set CSS variables using Tailwind class strings (e.g. 'bg-blue-600') instead of color values.",
+            "ThemeSwitcher tries to access 't.id' (undefined), should be 't.key'."
+        ]
+    },
+    "recommendation": "Delete custom ThemeContext. Refactor ThemeSwitcher to use 'next-themes' like the Settings page."
+}

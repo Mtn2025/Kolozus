@@ -1,75 +1,68 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { api } from "../lib/api";
-import { GraphNode } from "../lib/types";
-import Link from "next/link";
+import { useState } from "react"
+import { KnowledgeGraph } from "@/components/library/KnowledgeGraph"
+import { SearchBar } from "@/components/search/SearchBar"
+import { SearchResults } from "@/components/search/SearchResults"
+import { api } from "@/services/api"
 
 export default function LibraryPage() {
-    const [nodes, setNodes] = useState<GraphNode[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState("all");
+    const [results, setResults] = useState<any[]>([])
+    const [loading, setLoading] = useState(false)
 
-    useEffect(() => {
-        api.getKnowledgeGraph()
-            .then(setNodes)
-            .catch(console.error)
-            .finally(() => setLoading(false));
-    }, []);
+    const handleSearch = async (query: string) => {
+        if (!query.trim()) {
+            setResults([])
+            return
+        }
 
-    const filteredNodes = nodes.filter(n => filter === "all" || n.status === filter);
+        setLoading(true)
+        try {
+            const res = await api.post("/query/search", { query })
+            setResults(res.data)
+        } catch (error) {
+            console.error("Search error", error)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     return (
-        <div className="p-8 max-w-6xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-foreground">Knowledge Library</h1>
+        <div className="flex flex-col h-[calc(100vh-80px)] space-y-4">
+            <div className="flex-none space-y-4 px-1">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Biblioteca Cognitiva</h1>
+                    <p className="text-muted-foreground">Explora tu red de conocimiento.</p>
+                </div>
 
-                {/* Filters */}
-                <div className="flex gap-2">
-                    {["all", "germinal", "exploration", "consolidated"].map(s => (
-                        <button
-                            key={s}
-                            onClick={() => setFilter(s)}
-                            className={`px-3 py-1 rounded-full text-xs font-bold uppercase transition-colors ${filter === s
-                                ? "bg-foreground text-background"
-                                : "bg-card text-muted hover:text-foreground border border-border"
-                                }`}
-                        >
-                            {s}
-                        </button>
-                    ))}
+                <div className="w-full max-w-xl">
+                    <SearchBar onSearch={handleSearch} />
                 </div>
             </div>
 
-            {loading ? (
-                <div className="text-muted">Loading library...</div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredNodes.map(node => (
-                        <Link key={node.id} href={`/idea/${node.id}`} className="block group">
-                            <div className="bg-card border border-border p-5 rounded-lg h-full hover:border-primary/50 hover:shadow-md transition-all flex flex-col justify-between">
-                                <div>
-                                    <div className="flex justify-between items-start mb-3">
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${node.status === 'germinal' ? 'bg-muted/20 text-muted' :
-                                                node.status === 'exploration' ? 'bg-primary/10 text-primary' :
-                                                    'bg-green-500/10 text-green-600'
-                                            }`}>
-                                            {node.status}
-                                        </span>
-                                    </div>
-                                    <h3 className="text-foreground font-medium group-hover:text-primary leading-snug mb-2">
-                                        {node.label || "Untitled Idea"}
-                                    </h3>
-                                </div>
-                                <div className="text-xs text-muted font-mono mt-4 pt-4 border-t border-border flex justify-between">
-                                    <span>ID: {node.id.slice(0, 6)}...</span>
-                                    <span>Weight: {node.weight}</span>
-                                </div>
-                            </div>
-                        </Link>
-                    ))}
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0 overflow-hidden">
+                {/* Left Column: Search Results */}
+                <div className="lg:col-span-1 overflow-y-auto pr-2">
+                    {loading ? (
+                        <div className="py-8 text-center text-sm text-muted-foreground animate-pulse">
+                            Buscando conexiones semánticas...
+                        </div>
+                    ) : (
+                        <SearchResults results={results} />
+                    )}
+
+                    {!loading && results.length === 0 && (
+                        <div className="py-8 text-center text-sm text-muted-foreground bg-muted/20 rounded-lg mt-4">
+                            La búsqueda semántica encontrará ideas relacionadas conceptualmente.
+                        </div>
+                    )}
                 </div>
-            )}
+
+                {/* Right Column: Graph (Takes 2/3) */}
+                <div className="lg:col-span-2 h-full min-h-[400px]">
+                    <KnowledgeGraph />
+                </div>
+            </div>
         </div>
-    );
+    )
 }

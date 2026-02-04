@@ -25,6 +25,10 @@ class RepositoryPort(ABC):
     def create_space(self, name: str, description: str = None) -> Any:
         pass
 
+    @abstractmethod
+    def delete_space(self, space_id: UUID) -> bool:
+        pass
+
     # --- PRODUCTS ---
     @abstractmethod
     def create_product(self, product: 'Product') -> 'Product':
@@ -40,6 +44,10 @@ class RepositoryPort(ABC):
 
     @abstractmethod
     def update_product_status(self, product_id: UUID, status: str) -> bool:
+        pass
+
+    @abstractmethod
+    def delete_product(self, product_id: UUID) -> bool:
         pass
 
     @abstractmethod

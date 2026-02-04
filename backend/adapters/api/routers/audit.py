@@ -26,6 +26,16 @@ async def get_fragment_history(
         raise HTTPException(status_code=404, detail="No history found for this fragment")
     return history
 
+@router.get("/logs", response_model=List[Dict[str, Any]])
+async def get_recent_audit_logs(
+    limit: int = 50,
+    ledger: DecisionLedgerPort = Depends(get_ledger)
+):
+    """
+    Get the most recent system-wide decision logs.
+    """
+    return await ledger.get_recent_logs(limit)
+
 @router.post("/replay/{fragment_id}")
 async def replay_decision(
     fragment_id: UUID,

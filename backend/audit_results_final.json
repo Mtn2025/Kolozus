@@ -1,0 +1,46 @@
+{
+    "endpoints": [
+        {
+            "route": "/",
+            "method": "GET",
+            "status": 200,
+            "error": null,
+            "description": "Root"
+        },
+        {
+            "route": "/health",
+            "method": "GET",
+            "status": 200,
+            "error": null,
+            "description": "Health Check"
+        },
+        {
+            "route": "/ingest/",
+            "method": "POST",
+            "status": 200,
+            "error": null,
+            "description": "Ingest Fragment (Mocked)"
+        },
+        {
+            "route": "/query/search",
+            "method": "POST",
+            "status": 200,
+            "error": null,
+            "description": "Search (Mocked)"
+        },
+        {
+            "route": "/products/",
+            "method": "POST",
+            "status": 200,
+            "error": null,
+            "description": "Create Product"
+        },
+        {
+            "route": "/products/{product_id}/blueprint",
+            "method": "POST",
+            "status": 200,
+            "error": null,
+            "description": "Product Blueprint (Mocked)"
+        }
+    ]
+}

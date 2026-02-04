@@ -9,6 +9,14 @@ class DecisionLedgerPort(ABC):
     async def record_decision(self, fragment: Fragment, decision: DecisionResult):
         pass
 
+    @abstractmethod
+    async def get_recent_logs(self, limit: int = 50) -> list:
+        pass
+
+    @abstractmethod
+    async def get_decision_history(self, fragment_id) -> list:
+        pass
+
 class InMemoryDecisionLedger(DecisionLedgerPort):
     def __init__(self):
         self._ledger = []

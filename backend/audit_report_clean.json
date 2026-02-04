@@ -1,0 +1,108 @@
+{
+    "endpoints": [
+        {
+            "route": "/",
+            "method": "GET",
+            "status": 200,
+            "error": null,
+            "file": "main.py",
+            "line": 50
+        },
+        {
+            "route": "/health",
+            "method": "GET",
+            "status": 200,
+            "error": null,
+            "file": "main.py",
+            "line": 62
+        },
+        {
+            "route": "/spaces/",
+            "method": "POST",
+            "status": 200,
+            "error": null,
+            "file": "adapters/api/routers/spaces.py",
+            "line": 20
+        },
+        {
+            "route": "/spaces/{id}",
+            "method": "GET",
+            "status": 200,
+            "error": null,
+            "file": "adapters/api/routers/spaces.py",
+            "line": 15
+        },
+        {
+            "route": "/ingest/",
+            "method": "POST",
+            "status": 200,
+            "error": null,
+            "file": "adapters/api/routers/ingestion.py",
+            "line": 18
+        },
+        {
+            "route": "/query/fragments",
+            "method": "GET",
+            "status": 200,
+            "error": null,
+            "file": "adapters/api/routers/query.py",
+            "line": 20
+        },
+        {
+            "route": "/products/",
+            "method": "POST",
+            "status": 200,
+            "error": null,
+            "file": "adapters/api/routers/products.py",
+            "line": 47
+        },
+        {
+            "route": "/products/{id}",
+            "method": "GET",
+            "status": 200,
+            "error": null,
+            "file": "adapters/api/routers/products.py",
+            "line": 80
+        },
+        {
+            "route": "/products/{id}/blueprint",
+            "method": "POST",
+            "status": 200,
+            "error": null,
+            "file": "adapters/api/routers/products.py",
+            "line": 120
+        },
+        {
+            "route": "/query/search",
+            "method": "POST",
+            "status": 200,
+            "error": null,
+            "file": "adapters/api/routers/query.py",
+            "line": 45
+        },
+        {
+            "route": "/trash/fragment/{id}",
+            "method": "POST",
+            "status": 200,
+            "error": null,
+            "file": "adapters/api/routers/trash.py",
+            "line": 35
+        },
+        {
+            "route": "/ui/config",
+            "method": "POST",
+            "status": 200,
+            "error": null,
+            "file": "adapters/api/routers/ui_config.py",
+            "line": 25
+        },
+        {
+            "route": "/api/ai/config",
+            "method": "POST",
+            "status": 200,
+            "error": null,
+            "file": "adapters/api/routers/ai_config.py",
+            "line": 30
+        }
+    ]
+}

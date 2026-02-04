@@ -1,20 +1,28 @@
-"use client";
+"use client"
 
-import { SpaceProvider } from "@/app/lib/SpaceContext";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
-import * as React from "react";
+import * as React from "react"
+import { ThemeProvider as NextThemesProvider } from "next-themes"
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <NextThemesProvider
-            attribute="data-theme"
-            defaultTheme="evo"
-            enableSystem={false}
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
             disableTransitionOnChange
+            themes={[
+                "light",
+                "dark",
+                "bloomberg",
+                "onyx",
+                "obsidian",
+                "illuminate",
+                "rose",
+                "canvas",
+                "zen"
+            ]}
         >
-            <SpaceProvider>
-                {children}
-            </SpaceProvider>
+            {children}
         </NextThemesProvider>
-    );
+    )
 }

@@ -5,6 +5,7 @@ from ports.ai_provider import AIProviderPort
 from ports.llm_provider import LLMProvider
 from adapters.llm.groq_adapter import GroqAdapter
 from adapters.llm.ollama_adapter import OllamaAdapter
+from adapters.llm.mock_adapter import MockAdapter
 from domain.services.ai_config_service import AIConfigService, AIModelConfig
 
 class CompositeAIProvider(AIProviderPort):
@@ -16,9 +17,13 @@ class CompositeAIProvider(AIProviderPort):
         # Since 'get_ai_provider' in fastAPI can be request-scoped, we can inject DB session into it.
         self.config_service = config_service
         self._groq_api_key = os.getenv("GROQ_API_KEY", "")
+        self._force_mock = os.getenv("AI_PROVIDER") == "mock"
 
     def _get_provider(self, config: AIModelConfig) -> LLMProvider:
-        # Factory method - Lightweight enough to recreate or we could cache safely if no state involved
+        # Factories method - Lightweight enough to recreate or we could cache safely if no state involved
+        if self._force_mock:
+            return MockAdapter()
+
         if config.provider == "groq":
             if not self._groq_api_key:
                 print(f"[CompositeAI] Warning: GROQ_API_KEY not set. {config.model_name} might fail.")
