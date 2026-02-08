@@ -3,8 +3,10 @@
 import { useState, Suspense } from "react"
 import { IngestForm } from "@/components/ingest/IngestForm"
 import { IngestResults } from "@/components/ingest/IngestResults"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export default function IngestPage() {
+    const { t } = useLanguage()
     const [result, setResult] = useState<any>(null)
 
     return (
@@ -12,14 +14,14 @@ export default function IngestPage() {
             <div className="w-full max-w-3xl space-y-8">
 
                 <div className="space-y-2">
-                    <h1 className="text-3xl font-bold tracking-tight">Ingesta</h1>
-                    <p className="text-muted-foreground">Alimenta tu sistema con nueva información.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t("ingestTitle")}</h1>
+                    <p className="text-muted-foreground">{t("ingestSubtitle")}</p>
                 </div>
 
                 {result ? (
                     <IngestResults data={result} onReset={() => setResult(null)} />
                 ) : (
-                    <Suspense fallback={<div>Cargando formulario...</div>}>
+                    <Suspense fallback={<div>{t("loadingForm")}</div>}>
                         <IngestForm onSuccess={setResult} />
                     </Suspense>
                 )}

@@ -1,95 +1,87 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database
   db:
-    image: pgvector/pgvector:pg16
-    restart: unless-stopped
+    image: postgres:16-alpine
+    container_name: kolozus-db
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-kolozus}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Database password required}
-      POSTGRES_DB: ${POSTGRES_DB:-kolozus_main}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kolozus} -d ${POSTGRES_DB:-kolozus_main}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
     networks:
-      - default
+      - kolozus_network
 
+  # Backend API (FastAPI)
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    restart: unless-stopped
+    container_name: kolozus-backend
     environment:
-      # App Config
-      PORT: ${BACKEND_PORT:-8000}
-      PYTHONUNBUFFERED: 1
-      # Database
-      DATABASE_URL: postgresql://${POSTGRES_USER:-kolozus}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-kolozus_main}
-      # AI Providers
+      DATABASE_URL: ${DATABASE_URL}
+      AI_PROVIDER: ${AI_PROVIDER}
+      AI_PROFILE: ${AI_PROFILE}
       GROQ_API_KEY: ${GROQ_API_KEY}
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
-      AI_PROVIDER: ${AI_PROVIDER:-composite}
     depends_on:
       db:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://127.0.0.1:8000/health || exit 1" ]
-      interval: 15s
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
       timeout: 10s
-      retries: 5
-      start_period: 60s
-    expose:
-      - "8000"
+      retries: 3
     networks:
-      - coolify
-      - default
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.kolozus-backend.rule=Host(`kolozus.ubrokers.mx`) && PathPrefix(`/api`)"
-      - "traefik.http.middlewares.kolozus-backend-strip.stripprefix.prefixes=/api"
-      - "traefik.http.routers.kolozus-backend.middlewares=kolozus-backend-strip"
-      - "traefik.http.services.kolozus-backend.loadbalancer.server.port=8000"
-      - "traefik.http.routers.kolozus-backend.priority=200"
-      - "traefik.docker.network=coolify"
+      - kolozus_network
 
+  # Frontend (Next.js)
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-    restart: unless-stopped
+    container_name: kolozus-frontend
     environment:
-      NODE_ENV: production
-      PORT: ${FRONTEND_PORT:-3000}
-      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://0.0.0.0:3000/api/health || exit 1" ]
-      interval: 15s
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
-    expose:
-      - "3000"
     networks:
-      - coolify
-      - default
-    labels:
-      - "traefik.enable=true"
-      - "coolify.ignore"
+      - kolozus_network
+
+  # Ollama (Opcional - solo si AI_PROVIDER=ollama)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: kolozus-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - kolozus_network
 
 volumes:
   postgres_data:
-    driver: local
+  ollama_data:
 
 networks:
-  coolify:
-    external: true
+  kolozus_network:
+    driver: bridge

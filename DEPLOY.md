@@ -1,179 +1,98 @@
-# Kolozus Deployment Guide
+# Despliegue en Coolify
 
-## Coolify Deployment
+## Pre-requisitos
+- Cuenta en Coolify
+- Repositorio en GitHub/GitLab conectado a Coolify
+- Dominio configurado (opcional)
 
-### 1. Required Environment Variables
+## Pasos para despliegue
 
-Configure these in Coolify (Project → Environment Variables):
+### 1. Crear nuevo proyecto en Coolify
+- Ir a Coolify → New Project
+- Seleccionar "Docker Compose"
+- Conectar repositorio de GitHub
 
-| Variable | Description | Required | Example/Default |
-|----------|-------------|----------|-----------------|
-| `POSTGRES_PASSWORD` | Database password | ✅ Yes | Use strong random string |
-| `GROQ_API_KEY` | Groq AI API key | ✅ Yes | `gsk_...` |
-| `POSTGRES_USER` | Database user | No | `kolozus` (default) |
-| `POSTGRES_DB` | Database name | No | `kolozus_main` (default) |
-| `BACKEND_PORT` | Backend port | No | `8000` (default) |
-| `FRONTEND_PORT` | Frontend port | No | `3000` (default) |
-| `OLLAMA_BASE_URL` | Ollama endpoint | No | `http://host.docker.internal:11434` (default) |
-| `AI_PROVIDER` | AI provider strategy | No | `composite` (default) |
-| `NEXT_PUBLIC_API_URL` | Frontend API URL | No | `http://localhost:8000` (default) |
+### 2. Configurar Variables de Entorno en Coolify UI
 
-### 2. Deployment Process
+#### Base de Datos
+POSTGRES_USER=kolozus_prod
+POSTGRES_PASSWORD=<generar_contraseña_segura>
+POSTGRES_DB=kolozus_prod
+POSTGRES_HOST=db
+DATABASE_URL=postgresql://kolozus_prod:<password>@db:5432/kolozus_prod
 
-Coolify will automatically:
 
-1. **Build Phase** (~60s)
-   - Build backend and frontend Docker images
-   - Install dependencies
+#### Backend
+BACKEND_PORT=8000
+AI_PROVIDER=mock # o groq/ollama según necesidad
+AI_PROFILE=guardian # o maestro/spark
+GROQ_API_KEY=<tu_api_key_de_groq> # solo si AI_PROVIDER=groq
+OLLAMA_BASE_URL=http://ollama:11434 # solo si AI_PROVIDER=ollama
 
-2. **Database Start** (~10-15s)
-   - Start PostgreSQL with pgvector
-   - Wait for healthcheck to pass
 
-3. **Backend Start** (~60-75s)
-   - Start FastAPI application
-   - Connect to database
-   - Wait for healthcheck (60s start period)
+#### Frontend
+FRONTEND_PORT=3000
+NEXT_PUBLIC_API_URL=https://api.tudominio.com # o http://backend:8000 si mismo servidor
 
-4. **Frontend Start** (~30-40s)
-   - Start Next.js application
-   - Wait for healthcheck
 
-**Total deployment time:** ~2-3 minutes
+#### CORS (Opcional)
 
-### 3. Verify Deployment
+CORS_ALLOWED_ORIGINS=https://tudominio.com
 
-Check container health status:
-```bash
-docker ps
-```
 
-All containers should show `(healthy)` status.
+### 3. Configurar Puertos en Coolify
+- Backend: 8000 (HTTP)
+- Frontend: 3000 (HTTP)
+- PostgreSQL: 5432 (TCP - solo para conexión interna)
+- Ollama: 11434 (TCP - solo si se usa)
 
-Test endpoints:
-```bash
-# Backend health
-curl https://your-app.coolify.io/health
+### 4. Configurar Volúmenes
+- `postgres_data` → /var/lib/postgresql/data
+- `ollama_data` → /root/.ollama (solo si se usa Ollama)
 
-# Frontend
-curl https://your-app.coolify.io/
-```
+### 5. Configurar Health Checks
+- Backend: `GET /health` → 200 OK
+- Frontend: `GET /` → 200 OK
+- Database: `pg_isready` → 0
+- Ollama: `GET /` → 200 OK (solo si se usa)
 
----
+### 6. Deploy
+- Click en "Deploy"
+- Esperar a que Coolify construya y despliegue
+- Verificar logs para errores
 
-## Local Development
-
-### Setup
-
-1. **Clone repository**
-```bash
-git clone https://github.com/Mtn2025/Kolozus.git
-cd Kolozus
-```
-
-2. **Create environment file**
-```bash
-cp .env.example .env
-```
-
-3. **Edit `.env` with your credentials**
-```bash
-# Required
-POSTGRES_PASSWORD=your_secure_password
-GROQ_API_KEY=your_groq_api_key
-```
-
-### Run in Development Mode
-
-```bash
-# Start with hot reload
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up
-
-# Access:
-# - Frontend: http://localhost:3000
-# - Backend API: http://localhost:8000
-# - Backend Docs: http://localhost:8000/docs
-```
-
-### Run in Production Mode (locally)
-
-```bash
-# Build and start
-docker compose up --build
-
-# Stop
-docker compose down
-
-# Stop and remove volumes (clean slate)
-docker compose down -v
-```
-
----
-
-## Architecture
-
-### Services
-
-- **Database** (`db`): PostgreSQL 16 with pgvector extension
-- **Backend** (`backend`): FastAPI application (Python 3.11)
-- **Frontend** (`frontend`): Next.js application (Node 20)
-
-### Networking
-
-All services communicate via internal `kolozus_network`. No ports are exposed to host in production (Coolify handles proxy).
-
-### Data Persistence
-
-- Database data: `postgres_data` Docker volume
-- Persistent across container restarts
-- Backup recommended before major updates
-
----
+### 7. Post-Deploy
+- Verificar que todos los servicios están saludables
+- Acceder al frontend: https://tudominio.com
+- Verificar API: https://api.tudominio.com/health
+- Probar funcionalidades básicas
 
 ## Troubleshooting
 
-### Backend fails healthcheck
+### Error: "Database connection failed"
+- Verificar que DATABASE_URL es correcto
+- Verificar que PostgreSQL está saludable
+- Verificar logs de backend
 
-**Symptoms:** `container backend-xxx is unhealthy`
+### Error: "CORS policy"
+- Verificar CORS_ALLOWED_ORIGINS
+- Verificar que el dominio frontend coincide con el permitido
 
-**Solutions:**
-1. Check logs: `docker logs <container-id>`
-2. Verify `GROQ_API_KEY` is set correctly
-3. Ensure database is healthy first
-4. Increase `start_period` if initialization takes longer
+### Error: "AI Provider not configured"
+- Verificar AI_PROVIDER y AI_PROFILE
+- Verificar API keys si se usan proveedores cloud
 
-### Database connection errors
+## Escalabilidad
 
-**Symptoms:** `could not connect to server`
+### Añadir más instancias
+- En Coolify, escalar réplicas de backend/frontend
+- Configurar load balancer si es necesario
 
-**Solutions:**
-1. Verify `POSTGRES_PASSWORD` is set
-2. Check database healthcheck: `docker ps`
-3. Ensure `DATABASE_URL` uses correct credentials
+### Backup de base de datos
+- Configurar backup automático en Coolify
+- O usar pg_dump manualmente
 
-### Frontend can't reach backend
-
-**Symptoms:** API calls fail, CORS errors
-
-**Solutions:**
-1. Verify `NEXT_PUBLIC_API_URL` matches backend URL
-2. In Coolify, use internal service names (e.g., `http://backend:8000`)
-3. Check backend healthcheck is passing
-
----
-
-## Migration from Old Setup
-
-If upgrading from previous configuration:
-
-1. **Backup data** (if needed)
-2. **Stop old containers**: `docker compose down`
-3. **Pull latest code**: `git pull`
-4. **Set environment variables** in Coolify
-5. **Deploy**: Trigger new deployment in Coolify
-
-**Note:** Database volume name changed to `postgres_data`. Old data in `./data/postgres` needs migration if required.
-
----
-
-**STATUS:** Production Ready ✅
+### Monitorización
+- Configurar logs en Coolify
+- Usar métricas de Docker
+- Configurar alertas si es necesario

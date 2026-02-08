@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { UploadCloud, FileText, Layers, CheckCircle2 } from "lucide-react"
+import { UploadCloud } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -18,19 +18,19 @@ import { api } from "@/services/api"
 import { Space } from "@/types"
 import { useSearchParams } from "next/navigation"
 import { toast } from "sonner"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 interface IngestFormProps {
     onSuccess: (data: any) => void
 }
 
 export function IngestForm({ onSuccess }: IngestFormProps) {
+    const { language, t } = useLanguage()
     const searchParams = useSearchParams()
     const defaultSpaceId = searchParams.get("space_id")
 
     const [loading, setLoading] = useState(false)
     const [spaces, setSpaces] = useState<Space[]>([])
-
-    // Form State
     const [text, setText] = useState("")
     const [spaceId, setSpaceId] = useState<string>(defaultSpaceId || "")
     const [isBatch, setIsBatch] = useState(false)
@@ -59,30 +59,28 @@ export function IngestForm({ onSuccess }: IngestFormProps) {
         setLoading(true)
         try {
             let response
-            if (isBatch) {
-                // Client-side splitting logic
-                const texts = text.split(/\n\n+/).filter(t => t.trim().length > 0)
-                const payload = {
-                    texts: texts,
-                    space_id: spaceId,
-                    mode: mode
-                }
-                response = await api.post("/ingest/batch", payload)
-            } else {
-                const payload = {
-                    text: text,
-                    space_id: spaceId,
-                    mode: mode
-                }
-                response = await api.post("/ingest/", payload)
+            const payload = {
+                [isBatch ? "texts" : "text"]: isBatch
+                    ? text.split(/\n\n+/).filter(t => t.trim().length > 0)
+                    : text,
+                space_id: spaceId,
+                mode: mode,
+                language: language // Pass current language to backend
             }
 
+            const endpoint = isBatch ? "/ingest/batch" : "/ingest/"
+            response = await api.post(endpoint, payload, {
+                headers: {
+                    'Accept-Language': language // Backend can use this for LLM prompts
+                }
+            })
+
             onSuccess(response.data)
-            setText("") // Clear form on success
-            toast.success("Ingesta completada correctamente")
+            setText("")
+            toast.success(t("ingestSuccessMessage"))
         } catch (error) {
             console.error("Ingest failed", error)
-            toast.error("Error al ingerir texto. Revisa la consola.")
+            toast.error(t("ingestErrorMessage"))
         } finally {
             setLoading(false)
         }
@@ -91,19 +89,19 @@ export function IngestForm({ onSuccess }: IngestFormProps) {
     return (
         <Card className="w-full">
             <CardHeader>
-                <CardTitle>Ingesta de Conocimiento</CardTitle>
+                <CardTitle>{t("ingestCardTitle")}</CardTitle>
                 <CardDescription>
-                    Transforma texto crudo en fragmentos cognitivos e ideas conectadas.
+                    {t("ingestCardDescription")}
                 </CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit}>
                 <CardContent className="space-y-6">
                     {/* Space Selection */}
                     <div className="space-y-2">
-                        <Label>Espacio de Destino</Label>
+                        <Label>{t("destinationSpace")}</Label>
                         <Select value={spaceId} onValueChange={setSpaceId} required>
                             <SelectTrigger>
-                                <SelectValue placeholder="Selecciona un espacio..." />
+                                <SelectValue placeholder={t("selectSpacePlaceholder")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {spaces.map(s => (
@@ -116,9 +114,9 @@ export function IngestForm({ onSuccess }: IngestFormProps) {
                     {/* Mode & Batch Toggles */}
                     <div className="flex items-center justify-between gap-4">
                         <div className="space-y-0.5">
-                            <Label className="text-base">Modo por Lotes</Label>
+                            <Label className="text-base">{t("batchMode")}</Label>
                             <div className="text-xs text-muted-foreground">
-                                Separa por doble salto de línea (\n\n)
+                                {t("batchModeHelp")}
                             </div>
                         </div>
                         <Switch checked={isBatch} onCheckedChange={setIsBatch} />
@@ -126,16 +124,16 @@ export function IngestForm({ onSuccess }: IngestFormProps) {
 
                     {/* Text Area */}
                     <div className="space-y-2">
-                        <Label>Contenido</Label>
+                        <Label>{t("contentLabel")}</Label>
                         <Textarea
-                            placeholder="Pega aquí tu texto, notas o extractos..."
+                            placeholder={t("contentPlaceholder")}
                             className="min-h-[200px] font-mono text-sm"
                             value={text}
                             onChange={(e) => setText(e.target.value)}
                             required
                         />
                         <div className="text-xs text-muted-foreground text-right">
-                            {text.length} caracteres
+                            {text.length} {t("charactersLabel")}
                         </div>
                     </div>
 
@@ -143,11 +141,11 @@ export function IngestForm({ onSuccess }: IngestFormProps) {
                 <CardFooter className="justify-end gap-2">
                     <Button type="submit" disabled={loading || !spaceId || !text.trim()}>
                         {loading ? (
-                            <>Procesando...</>
+                            <>{t("processing")}</>
                         ) : (
                             <>
                                 <UploadCloud className="mr-2 h-4 w-4" />
-                                Ingestar {isBatch ? "(Batch)" : ""}
+                                {t("ingestButtonLabel")} {isBatch ? t("batchLabel") : ""}
                             </>
                         )}
                     </Button>

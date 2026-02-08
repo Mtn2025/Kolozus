@@ -6,7 +6,7 @@ import os
 
 class OllamaProvider(AIProviderPort):
     def __init__(self, base_url: str = None, model: str = "llama3"):
-        self.base_url = base_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        self.base_url = base_url or os.getenv("OLLAMA_BASE_URL")
         self.model = model or os.getenv("OLLAMA_MODEL", "llama3")
         self.embedding_model = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
         

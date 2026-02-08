@@ -11,5 +11,6 @@ class UISettings(Base):
     user_id = Column(UUID(as_uuid=True), nullable=True, index=True) 
     
     theme = Column(String, default="evo")
+    language = Column(String(5), default="es")  # ✅ Added language column (es/en)
     
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), default=func.now())

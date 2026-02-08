@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple, Any
 from uuid import UUID
 from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 from domain.models import Fragment, Idea, IdeaVersion, Space, Product, ProductSection
 from ports.repository import RepositoryPort
 from adapters.orm import FragmentModel, IdeaModel, IdeaVersionModel, DecisionLogModel, SpaceModel, ProductModel, ProductSectionModel, EditorialProfileModel
@@ -18,7 +18,8 @@ class PostgresRepository(RepositoryPort):
             raw_text=fragment.raw_text,
             source=fragment.source,
             created_at=fragment.created_at,
-            embedding=fragment.embedding
+            embedding=fragment.embedding,
+            space_id=fragment.space_id
         )
         self.db.add(db_fragment)
         self.db.commit()
@@ -38,13 +39,36 @@ class PostgresRepository(RepositoryPort):
             return Space.model_validate(result)
         return None
 
-    def create_space(self, name: str, description: str = None) -> Space:
-        space = SpaceModel(id=uuid.uuid4(), name=name, description=description)
+    def create_space(self, name: str, description: str = None, icon: str = None, color: str = None) -> Space:
+        space = SpaceModel(
+            id=uuid.uuid4(), 
+            name=name, 
+            description=description,
+            icon=icon,
+            color=color
+        )
         self.db.add(space)
         self.db.commit()
         self.db.refresh(space)
         return Space.model_validate(space)
-    
+
+    def save_space(self, space: Space) -> Space:
+        # Check if it exists
+        stmt = select(SpaceModel).where(SpaceModel.id == space.id)
+        existing = self.db.execute(stmt).scalar_one_or_none()
+        
+        if existing:
+            existing.name = space.name
+            existing.description = space.description
+            existing.icon = space.icon
+            existing.color = space.color
+            self.db.commit()
+            self.db.refresh(existing)
+            return Space.model_validate(existing)
+        else:
+            # Fallback to create if somehow saving a new object this way (though router shouldn't do this for CREATE)
+            return self.create_space(space.name, space.description, space.icon, space.color)
+
     def delete_space(self, space_id: UUID) -> bool:
         stmt = select(SpaceModel).where(SpaceModel.id == space_id)
         space = self.db.execute(stmt).scalar_one_or_none()
@@ -73,12 +97,28 @@ class PostgresRepository(RepositoryPort):
         return product
 
     def get_product(self, product_id: UUID) -> Optional[Product]:
-        # Eager load sections for now (simplistic)
-        stmt = select(ProductModel).where(ProductModel.id == product_id).options(selectinload(ProductModel.sections))
+        # Load product
+        stmt = select(ProductModel).where(ProductModel.id == product_id)
         result = self.db.execute(stmt).scalar_one_or_none()
-        if result:
-            return Product.model_validate(result)
-        return None
+        if not result:
+            return None
+        
+        product = Product.model_validate(result)
+        
+        # ✅ FIX: Manually load ONLY top-level sections (parent_id IS NULL)
+        # This prevents subsections from appearing twice (once nested, once in main array)
+        stmt_sections = select(ProductSectionModel)\
+            .where(ProductSectionModel.product_id == product_id)\
+            .where(ProductSectionModel.parent_id == None)\
+            .order_by(ProductSectionModel.order_index)
+        
+        sections_models = self.db.execute(stmt_sections).scalars().all()
+        
+        # Convert to domain objects
+        # The subsections will be loaded automatically via the ORM relationship
+        product.sections = [ProductSection.model_validate(s) for s in sections_models]
+        
+        return product
     
     def update_product(self, product: Product) -> Product:
         stmt = (
@@ -118,7 +158,7 @@ class PostgresRepository(RepositoryPort):
         return False
 
     def add_section(self, section: ProductSection) -> ProductSection:
-        db_section = ProductSectionModel(
+        section_model = ProductSectionModel(
             id=section.id,
             product_id=section.product_id,
             parent_id=section.parent_id,
@@ -129,16 +169,50 @@ class PostgresRepository(RepositoryPort):
             created_at=section.created_at,
             updated_at=section.updated_at
         )
-        self.db.add(db_section)
+        self.db.add(section_model)
         self.db.commit()
-        return section
+        self.db.refresh(section_model)
+        return ProductSection.model_validate(section_model)
+    
+    def delete_section(self, section_id: UUID) -> bool:
+        """Delete a section and all its subsections (cascade)"""
+        # Delete subsections first
+        stmt_subsections = delete(ProductSectionModel)\
+            .where(ProductSectionModel.parent_id == section_id)
+        self.db.execute(stmt_subsections)
+        
+        # Delete the section itself
+        stmt = delete(ProductSectionModel).where(ProductSectionModel.id == section_id)
+        result = self.db.execute(stmt)
+        self.db.commit()
+        
+        return result.rowcount > 0
         
     def get_section(self, section_id: UUID) -> Optional[ProductSection]:
         stmt = select(ProductSectionModel).where(ProductSectionModel.id == section_id)
-        result = self.db.execute(stmt).scalar_one_or_none()
-        if result:
-            return ProductSection.model_validate(result)
+        section_model = self.db.execute(stmt).scalar_one_or_none()
+        if section_model:
+            return ProductSection.model_validate(section_model)
         return None
+    
+    def update_section(self, section: ProductSection) -> ProductSection:
+        """Update an existing product section"""
+        stmt = (
+            update(ProductSectionModel)
+            .where(ProductSectionModel.id == section.id)
+            .values(
+                title=section.title,
+                content=section.content,
+                order_index=section.order_index,
+                intervention_level=section.intervention_level,
+                updated_at=datetime.utcnow()
+            )
+        )
+        self.db.execute(stmt)
+        self.db.commit()
+        
+        # Return updated section
+        return self.get_section(section.id)
 
     def update_section_content(self, section_id: UUID, content: str, level: int) -> bool:
         stmt = update(ProductSectionModel).where(ProductSectionModel.id == section_id).values(
@@ -223,7 +297,8 @@ class PostgresRepository(RepositoryPort):
                 created_at=idea.created_at,
                 updated_at=idea.updated_at,
                 semantic_profile=profile_json,
-                embedding=embedding_val # SYNCED
+                embedding=embedding_val, # SYNCED
+                space_id=idea.space_id
             )
             self.db.add(db_idea)
             self.db.commit()
@@ -301,10 +376,7 @@ class PostgresRepository(RepositoryPort):
             dist = row[1]
             sim = 1.0 - dist
             candidates.append((Idea.model_validate(idea_model), sim))
-            
-            sim = 1.0 - dist
-            candidates.append((Idea.model_validate(idea_model), sim))
-            
+        
         return candidates
 
     # --- TRASH MANAGEMENT ---

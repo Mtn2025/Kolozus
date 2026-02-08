@@ -5,8 +5,10 @@ import { KnowledgeGraph } from "@/components/library/KnowledgeGraph"
 import { SearchBar } from "@/components/search/SearchBar"
 import { SearchResults } from "@/components/search/SearchResults"
 import { api } from "@/services/api"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export default function LibraryPage() {
+    const { t } = useLanguage()
     const [results, setResults] = useState<any[]>([])
     const [loading, setLoading] = useState(false)
 
@@ -21,7 +23,7 @@ export default function LibraryPage() {
             const res = await api.post("/query/search", { query })
             setResults(res.data)
         } catch (error) {
-            console.error("Search error", error)
+            console.error(t("searchError"), error)
         } finally {
             setLoading(false)
         }
@@ -31,8 +33,8 @@ export default function LibraryPage() {
         <div className="flex flex-col h-[calc(100vh-80px)] space-y-4">
             <div className="flex-none space-y-4 px-1">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Biblioteca Cognitiva</h1>
-                    <p className="text-muted-foreground">Explora tu red de conocimiento.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t("libraryTitle")}</h1>
+                    <p className="text-muted-foreground">{t("librarySubtitle")}</p>
                 </div>
 
                 <div className="w-full max-w-xl">
@@ -45,7 +47,7 @@ export default function LibraryPage() {
                 <div className="lg:col-span-1 overflow-y-auto pr-2">
                     {loading ? (
                         <div className="py-8 text-center text-sm text-muted-foreground animate-pulse">
-                            Buscando conexiones semánticas...
+                            {t("searchingConnections")}
                         </div>
                     ) : (
                         <SearchResults results={results} />
@@ -53,13 +55,13 @@ export default function LibraryPage() {
 
                     {!loading && results.length === 0 && (
                         <div className="py-8 text-center text-sm text-muted-foreground bg-muted/20 rounded-lg mt-4">
-                            La búsqueda semántica encontrará ideas relacionadas conceptualmente.
+                            {t("semanticSearchHelp")}
                         </div>
                     )}
                 </div>
 
-                {/* Right Column: Graph (Takes 2/3) */}
-                <div className="lg:col-span-2 h-full min-h-[400px]">
+                {/* Right Column: Knowledge Graph */}
+                <div className="lg:col-span-2 min-h-0">
                     <KnowledgeGraph />
                 </div>
             </div>

@@ -1,16 +1,24 @@
-export default function Home() {
+"use client"
+
+import { Card } from "@/components/ui/card"
+import { useLanguage } from "@/contexts/LanguageContext"
+
+export default function HomePage() {
+  const { t } = useLanguage()
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <h1 className="text-4xl font-bold tracking-tight text-primary">Kolozus v3</h1>
-        <p className="text-muted-foreground mt-4">Frontend rebooted successfully.</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">{t("appTitle")}</h1>
+        <p className="text-muted-foreground">{t("frontendRebootMessage")}</p>
       </div>
-      <div className="mt-8 grid gap-4">
-        <div className="p-6 border rounded-lg bg-card text-card-foreground shadow-sm">
-          <h2 className="text-xl font-semibold">System Ready</h2>
-          <p className="text-sm text-muted-foreground">Tailwind + Shadcn/UI Configured.</p>
-        </div>
-      </div>
-    </main>
-  );
+
+      <Card className="p-6">
+        <h2 className="text-2xl font-semibold">{t("systemReady")}</h2>
+        <p className="text-muted-foreground mt-2">
+          {t("uiConfigured")}
+        </p>
+      </Card>
+    </div>
+  )
 }

@@ -1,0 +1,89 @@
+[
+  {
+    "id": "d5f31cab-6b47-4ba0-a60a-2599a456774e",
+    "title": "Simulated Product",
+    "archetype": "non_fiction",
+    "style_family": "classic_publisher",
+    "design_overrides": {},
+    "status": "draft",
+    "space_id": "0684ece6-599a-4780-a399-667e2e0a5fe2",
+    "editorial_profile_id": null,
+    "created_at": "2026-02-07T07:05:48.166491",
+    "updated_at": "2026-02-07T07:05:48.166493",
+    "sections": [
+      {
+        "id": "259db2a7-56fa-4046-99f0-a14532d8f2f7",
+        "product_id": "d5f31cab-6b47-4ba0-a60a-2599a456774e",
+        "parent_id": null,
+        "title": "Module 1: Foundations (Mock)",
+        "content": "<p><em>Intro to the topic based on context.</em></p>",
+        "order_index": 0,
+        "intervention_level": 0,
+        "created_at": "2026-02-07T07:05:48.165171",
+        "updated_at": "2026-02-07T07:05:48.165173",
+        "subsections": [
+          {
+            "id": "5d353b03-8f83-4ee0-ae27-1a7678b55cb9",
+            "product_id": "d5f31cab-6b47-4ba0-a60a-2599a456774e",
+            "parent_id": "259db2a7-56fa-4046-99f0-a14532d8f2f7",
+            "title": "Lesson 1.1: Core Concepts",
+            "content": "<p><em>Deep dive into A.</em></p>",
+            "order_index": 0,
+            "intervention_level": 0,
+            "created_at": "2026-02-07T07:05:48.165171",
+            "updated_at": "2026-02-07T07:05:48.165173",
+            "subsections": []
+          },
+          {
+            "id": "372b3a5f-1fb1-49e4-b654-66715e1519d8",
+            "product_id": "d5f31cab-6b47-4ba0-a60a-2599a456774e",
+            "parent_id": "259db2a7-56fa-4046-99f0-a14532d8f2f7",
+            "title": "Lesson 1.2: History",
+            "content": "<p><em>Timeline of events.</em></p>",
+            "order_index": 1,
+            "intervention_level": 0,
+            "created_at": "2026-02-07T07:05:48.165171",
+            "updated_at": "2026-02-07T07:05:48.165173",
+            "subsections": []
+          }
+        ]
+      },
+      {
+        "id": "5d353b03-8f83-4ee0-ae27-1a7678b55cb9",
+        "product_id": "d5f31cab-6b47-4ba0-a60a-2599a456774e",
+        "parent_id": "259db2a7-56fa-4046-99f0-a14532d8f2f7",
+        "title": "Lesson 1.1: Core Concepts",
+        "content": "<p><em>Deep dive into A.</em></p>",
+        "order_index": 0,
+        "intervention_level": 0,
+        "created_at": "2026-02-07T07:05:48.165171",
+        "updated_at": "2026-02-07T07:05:48.165173",
+        "subsections": []
+      },
+      {
+        "id": "372b3a5f-1fb1-49e4-b654-66715e1519d8",
+        "product_id": "d5f31cab-6b47-4ba0-a60a-2599a456774e",
+        "parent_id": "259db2a7-56fa-4046-99f0-a14532d8f2f7",
+        "title": "Lesson 1.2: History",
+        "content": "<p><em>Timeline of events.</em></p>",
+        "order_index": 1,
+        "intervention_level": 0,
+        "created_at": "2026-02-07T07:05:48.165171",
+        "updated_at": "2026-02-07T07:05:48.165173",
+        "subsections": []
+      },
+      {
+        "id": "7b065f6a-7e98-4d4d-b408-a16bd222e4fe",
+        "product_id": "d5f31cab-6b47-4ba0-a60a-2599a456774e",
+        "parent_id": null,
+        "title": "Module 2: Advanced Topics (Mock)",
+        "content": "<p><em>Complex synthesis.</em></p>",
+        "order_index": 1,
+        "intervention_level": 0,
+        "created_at": "2026-02-07T07:05:48.165171",
+        "updated_at": "2026-02-07T07:05:48.165173",
+        "subsections": []
+      }
+    ]
+  }
+]

@@ -12,6 +12,7 @@ class SpaceModel(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100), nullable=False)
     description = Column(Text)
+    icon = Column(String(50), default="folder")
     color = Column(String(20), default="#cbd5e1")
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -29,6 +30,7 @@ class FragmentModel(Base):
     embedding = Column(Vector(1536))
     is_deleted = Column(Boolean, default=False)
     space_id = Column(UUID(as_uuid=True), ForeignKey("spaces.id"))
+    language = Column(String(2), default="es")  # Language code: 'es' or 'en'
     
     space = relationship("SpaceModel", back_populates="fragments")
 
@@ -48,6 +50,7 @@ class IdeaModel(Base):
     embedding = Column(Vector(1536))
     is_deleted = Column(Boolean, default=False)
     space_id = Column(UUID(as_uuid=True), ForeignKey("spaces.id"))
+    language = Column(String(2), default="es")  # Language code: 'es' or 'en'
 
     space = relationship("SpaceModel", back_populates="ideas")
 

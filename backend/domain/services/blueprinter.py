@@ -17,6 +17,13 @@ class Blueprinter:
             
         space_id = product.space_id
         
+        # ✅ FIX: Delete existing sections before regenerating
+        # This prevents accumulation of duplicate sections on repeated calls
+        existing_sections = product.sections
+        for section in existing_sections:
+            # Delete section and its subsections (cascade should handle this)
+            self.repo.delete_section(section.id)
+        
         # 1. Gather Context
         fragments = await self.repo.list_fragments(limit=50, space_id=space_id)
         context_text = "\n".join([f"- {f.raw_text}" for f in fragments])

@@ -5,14 +5,16 @@ import uuid
 import sys
 from typing import Dict, Any, List
 
-BASE_URL = "http://localhost:8000"
+import os
+
+BASE_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 def audit_request(method, path, body=None, params=None, desc=""):
     try:
         url = f"{BASE_URL}{path}"
         headers = {
             'Content-Type': 'application/json',
-            'Origin': 'http://localhost:3000' # Simulate Frontend Request
+            'Origin': os.getenv("FRONTEND_URL", "http://localhost:3000") # Simulate Frontend Request
         }
         
         response = requests.request(method, url, json=body, params=params, headers=headers)

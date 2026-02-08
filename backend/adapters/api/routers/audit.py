@@ -1,16 +1,59 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Dict, Any
 from uuid import UUID
+from sqlalchemy.orm import Session
+from sqlalchemy import func
 from infrastructure.dependencies import get_ledger, get_repository, get_cognitive_engine
+from infrastructure.database import get_db
 from ports.decision_ledger import DecisionLedgerPort
 from ports.repository import RepositoryPort
 from domain.engine import CognitiveEngine
+from adapters.orm import SpaceModel, FragmentModel, IdeaModel, ProductModel
 
 router = APIRouter(
     prefix="/audit",
     tags=["audit"],
     responses={404: {"description": "Not found"}},
 )
+
+print("LOADING AUDIT ROUTER ----------------------")
+
+@router.get("/ping")
+async def ping():
+    return {"message": "pong"}
+
+@router.get("/stats")
+async def get_system_stats(
+    db: Session = Depends(get_db),
+    ledger: DecisionLedgerPort = Depends(get_ledger)
+):
+    """
+    Get high-level system statistics for the Audit Dashboard.
+    """
+    # 1. Database Counts
+    spaces_count = db.query(SpaceModel).count()
+    fragments_count = db.query(FragmentModel).count()
+    ideas_count = db.query(IdeaModel).count()
+    products_count = db.query(ProductModel).count()
+    
+    # 2. Vector Count (Approximation: Fragments + Ideas that have embeddings)
+    # Assuming all ingested fragments and processed ideas have vectors.
+    # We can refine this by checking non-null embedding columns if needed.
+    vectors_fragments = db.query(FragmentModel).filter(FragmentModel.embedding.isnot(None)).count()
+    vectors_ideas = db.query(IdeaModel).filter(IdeaModel.embedding.isnot(None)).count()
+    vector_count = vectors_fragments + vectors_ideas
+
+    # 3. Recent Logs from Ledger
+    recent_logs = await ledger.get_recent_logs(limit=10)
+
+    return {
+        "spaces_count": spaces_count,
+        "fragments_count": fragments_count,
+        "ideas_count": ideas_count,
+        "products_count": products_count,
+        "vector_count": vector_count,
+        "recent_logs": recent_logs
+    }
 
 @router.get("/fragment/{fragment_id}", response_model=List[Dict[str, Any]])
 async def get_fragment_history(

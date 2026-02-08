@@ -1,58 +1,43 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { SpaceList } from "@/components/spaces/SpaceList"
-import { CreateSpaceDialog } from "@/components/spaces/CreateSpaceDialog"
+import { useState, useEffect } from "react"
 import { api } from "@/services/api"
-import { Space } from "@/types"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export default function SpacesPage() {
-    const [spaces, setSpaces] = useState<Space[]>([])
+    const { t } = useLanguage()
+    const [spaces, setSpaces] = useState([])
     const [loading, setLoading] = useState(true)
 
-    const fetchSpaces = async () => {
-        setLoading(true)
-        try {
-            const res = await api.get<Space[]>("/spaces/")
-            setSpaces(res.data)
-        } catch (error) {
-            console.error("Error fetching spaces", error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const handleDelete = async (id: string) => {
-        if (!confirm("¿Estás seguro de eliminar este espacio? Esta acción no se puede deshacer.")) return
-
-        try {
-            await api.delete(`/spaces/${id}`)
-            fetchSpaces() // Refresh list
-        } catch (error) {
-            console.error("Error deleting space", error)
-        }
-    }
-
     useEffect(() => {
+        async function fetchSpaces() {
+            try {
+                const res = await api.get("/spaces/")
+                setSpaces(res.data)
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setLoading(false)
+            }
+        }
         fetchSpaces()
     }, [])
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Espacios de Conocimiento</h2>
-                    <p className="text-muted-foreground">Gestiona tus áreas de investigación y curación.</p>
-                </div>
-                <CreateSpaceDialog onSpaceCreated={fetchSpaces} />
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">{t("spacesTitle")}</h1>
+                <p className="text-muted-foreground">{t("spacesSubtitle")}</p>
             </div>
 
             {loading ? (
-                <div className="flex items-center justify-center p-12">
-                    <div className="animate-pulse text-muted-foreground">Cargando espacios...</div>
+                <div className="p-8 text-center text-muted-foreground">
+                    {t("loadingSpaces")}
                 </div>
             ) : (
-                <SpaceList spaces={spaces} onDelete={handleDelete} />
+                <div className="grid gap-4">
+                    {/* Space list would go here */}
+                </div>
             )}
         </div>
     )

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { ArrowLeft, LayoutTemplate, Printer } from "lucide-react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BlueprintViewer } from "@/components/publisher/BlueprintViewer"
@@ -12,7 +13,10 @@ import { Product, ProductSection } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 
-export default function ProductStudioPage({ params }: { params: { id: string } }) {
+export default function ProductStudioPage() {
+    const params = useParams()
+    const id = params?.id as string
+
     const [product, setProduct] = useState<Product | null>(null)
     const [loading, setLoading] = useState(true)
     const [sections, setSections] = useState<ProductSection[]>([])
@@ -20,9 +24,11 @@ export default function ProductStudioPage({ params }: { params: { id: string } }
     const [previewHtml, setPreviewHtml] = useState("")
 
     useEffect(() => {
+        if (!id) return;
+
         const fetchProduct = async () => {
             try {
-                const res = await api.get<Product>(`/products/${params.id}`)
+                const res = await api.get<Product>(`/products/${id}`)
                 setProduct(res.data)
                 // Flatten sections if they come nested, or just use as is. 
                 // Assuming backend returns a tree or we need to build it.
@@ -37,7 +43,7 @@ export default function ProductStudioPage({ params }: { params: { id: string } }
             }
         }
         fetchProduct()
-    }, [params.id])
+    }, [id])
 
     const handleGenerateBlueprint = async () => {
         if (!product) return
@@ -93,8 +99,9 @@ export default function ProductStudioPage({ params }: { params: { id: string } }
     }
 
     const loadPreview = async () => {
+        if (!id) return;
         try {
-            const res = await api.get(`/products/${params.id}/preview`)
+            const res = await api.get(`/products/${id}/preview`)
             setPreviewHtml(res.data)
         } catch (e) {
             console.error(e)
@@ -129,12 +136,23 @@ export default function ProductStudioPage({ params }: { params: { id: string } }
                         <LayoutTemplate className="mr-2 h-4 w-4" />
                         {sections.length > 0 ? "Regenerar Blueprint" : "Generar Blueprint"}
                     </Button>
-                    <Link href={`/products/${product.id}/export`} target="_blank">
-                        <Button variant="outline">
-                            <Printer className="mr-2 h-4 w-4" />
-                            Exportar
-                        </Button>
-                    </Link>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline">
+                                <Printer className="mr-2 h-4 w-4" />
+                                Exportar
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/products/${product.id}/export?format=md`, '_blank')}>
+                                Markdown (.md)
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL}/products/${product.id}/export?format=html`, '_blank')}>
+                                HTML (.html)
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </header>
 

@@ -22,7 +22,11 @@ class RepositoryPort(ABC):
         pass
 
     @abstractmethod
-    def create_space(self, name: str, description: str = None) -> Any:
+    def create_space(self, name: str, description: str = None, icon: str = None, color: str = None) -> Any:
+        pass
+
+    @abstractmethod
+    def save_space(self, space: Any) -> Any:
         pass
 
     @abstractmethod

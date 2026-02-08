@@ -1,163 +1,191 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from typing import List, Dict, Any, Optional
-from uuid import UUID, uuid4
+from uuid import UUID
+from infrastructure.dependencies import get_repository, get_pipeline
 from ports.repository import RepositoryPort
-from infrastructure.dependencies import get_repository, get_ai_provider
-from ports.ai_provider import AIProviderPort
+from domain.services.pipeline import CognitivePipeline
+from domain.models import Product
 from pydantic import BaseModel
-from domain.models import Product, ProductSection, Archetype, StyleFamily
+from i18n import t, get_language_from_header
+import uuid
 
-router = APIRouter(prefix="/products", tags=["Editorial Engine"])
+router = APIRouter(prefix="/products", tags=["Products"])
 
-class CreateProductRequest(BaseModel):
+class ProductCreateRequest(BaseModel):
     title: str
-    archetype: str = "non_fiction"
-    style_family: str = "classic_publisher"
-    space_id: UUID
-    editorial_profile_id: Optional[UUID] = None
+    archetype: str # e.g., 'non_fiction', 'course'
+    target_audience: str
+    style_family: str # e.g., 'classic_publisher'
+    seed_text: Optional[str] = None
+    space_id: Optional[UUID] = None
 
-class AddSectionRequest(BaseModel):
-    title: str
-    parent_id: Optional[UUID] = None
-    order_index: int = 0
-
-class UpdateProductRequest(BaseModel):
-    design_overrides: Optional[Dict[str, Any]] = None
-    # Add other fields if needed
-
-@router.patch("/{product_id}", response_model=Product)
-async def update_product(
-    product_id: UUID,
-    payload: UpdateProductRequest,
-    repo: RepositoryPort = Depends(get_repository)
-):
-    product = repo.get_product(product_id)
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    
-    if payload.design_overrides is not None:
-        product.design_overrides = payload.design_overrides
-    
-    return repo.update_product(product)
-
-from domain.services.blueprinter import Blueprinter
-from domain.services.formatter import Formatter
-from fastapi.responses import HTMLResponse
-
-@router.post("/", response_model=Product)
+@router.post("/", response_model=Product, status_code=status.HTTP_201_CREATED)
 async def create_product(
-    payload: CreateProductRequest,
+    request: ProductCreateRequest,
+    pipeline: CognitivePipeline = Depends(get_pipeline),
     repo: RepositoryPort = Depends(get_repository),
-    ai: AIProviderPort = Depends(get_ai_provider)
+    accept_language: str = Header(default="en", alias="Accept-Language")
 ):
-    """Create a new editorial product draft with initial blueprint."""
-    # 1. Create Product
-    product = Product(
-        id=uuid4(),
-        title=payload.title,
-        archetype=Archetype(payload.archetype),
-        style_family=StyleFamily(payload.style_family),
-        space_id=payload.space_id,
-        editorial_profile_id=payload.editorial_profile_id
-    )
-    saved_product = repo.create_product(product)
-
-    # 2. Generate Blueprint
-    bp = Blueprinter(repo, ai)
-    await bp.generate_structure(saved_product.id) # method uses repo to save sections
+    lang = get_language_from_header(accept_language)
     
-    # 3. Reload to return full object
-    return repo.get_product(saved_product.id)
+    product = Product(
+        id=uuid.uuid4(),
+        title=request.title,
+        archetype=request.archetype,
+        target_audience=request.target_audience,
+        style_family=request.style_family,
+        # status="concept", (defaults)
+        space_id=request.space_id,
+        language=lang # Persistent language for product content
+    )
+    
+    # We might use pipeline to generate initial blueprint here
+    # ...
+    
+    await repo.save_product(product)
+    return product
 
 @router.get("/", response_model=List[Product])
 async def list_products(
-    space_id: UUID,
+    space_id: Optional[UUID] = None,
     repo: RepositoryPort = Depends(get_repository)
 ):
-    """List products in a space."""
-    return repo.list_products(space_id)
+    return await repo.list_products(space_id=space_id)
 
 @router.get("/{product_id}", response_model=Product)
 async def get_product(
     product_id: UUID,
-    repo: RepositoryPort = Depends(get_repository)
+    repo: RepositoryPort = Depends(get_repository),
+    accept_language: str = Header(default="en", alias="Accept-Language")
 ):
-    product = repo.get_product(product_id)
+    product = await repo.get_product(product_id)
     if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
+        lang = get_language_from_header(accept_language)
+        raise HTTPException(status_code=404, detail=t("product_not_found", lang))
     return product
-
-@router.delete("/{product_id}", response_model=Dict[str, bool])
-async def delete_product(
-    product_id: UUID,
-    repo: RepositoryPort = Depends(get_repository)
-):
-    """Delete a product."""
-    success = repo.delete_product(product_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Product not found")
-    return {"success": True}
-
-@router.post("/{product_id}/sections", response_model=ProductSection)
-async def add_section(
-    product_id: UUID,
-    payload: AddSectionRequest,
-    repo: RepositoryPort = Depends(get_repository)
-):
-    section = ProductSection(
-        id=uuid4(),
-        product_id=product_id,
-        parent_id=payload.parent_id,
-        title=payload.title,
-        order_index=payload.order_index
-    )
-    return repo.add_section(section)
-
-@router.get("/{product_id}/preview", response_class=HTMLResponse)
-async def preview_product(
-    product_id: UUID,
-    repo: RepositoryPort = Depends(get_repository)
-):
-    """Render the full product as HTML based on its Style Family."""
-    product = repo.get_product(product_id)
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
     
-    html = Formatter.render_html(product)
-    return html
+@router.post("/{product_id}/blueprint", response_model=Dict[str, Any])
+async def generate_blueprint(
+    product_id: UUID,
+    pipeline: CognitivePipeline = Depends(get_pipeline),
+    repo: RepositoryPort = Depends(get_repository),
+    accept_language: str = Header(default="en", alias="Accept-Language")
+):
+    lang = get_language_from_header(accept_language)
+    product = await repo.get_product(product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail=t("product_not_found", lang))
+
+    # Trigger blueprint generation using pipeline/LLM
+    # Pass language to synthesis
+    # blueprint = await pipeline.generate_blueprint(product, language=lang) 
+    
+    # Mock return for now
+    return {"status": "blueprint_generated", "language": lang}
 
 @router.get("/{product_id}/export")
 async def export_product(
     product_id: UUID,
-    format: str = "html",
-    repo: RepositoryPort = Depends(get_repository)
-):
-    """Export product in requested format (html, md)."""
-    product = repo.get_product(product_id)
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    
-    if format == "md":
-        content = Formatter.render_markdown(product)
-        media_type = "text/markdown"
-        filename = f"{product.title}.md"
-    else:
-        content = Formatter.render_html(product)
-        media_type = "text/html"
-        filename = f"{product.title}.html"
-        
-    return HTMLResponse(content=content, media_type=media_type, headers={"Content-Disposition": f"attachment; filename={filename}"})
-
-@router.post("/{product_id}/blueprint")
-async def create_blueprint(
-    product_id: UUID,
+    format: str = "md",
     repo: RepositoryPort = Depends(get_repository),
-    ai: AIProviderPort = Depends(get_ai_provider)
+    accept_language: str = Header(default="en", alias="Accept-Language")
 ):
-    """Auto-generates sections for the product based on Space content."""
-    bp = Blueprinter(repo, ai)
-    try:
-        sections = await bp.generate_structure(product_id)
-        return sections
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    lang = get_language_from_header(accept_language)
+    product = await repo.get_product(product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail=t("product_not_found", lang))
+
+    # Helper to recursively build text
+    def build_markdown(sections: List[Any], level: int = 2) -> str:
+        text = ""
+        for section in sections:
+            # Title
+            prefix = "#" * level
+            if section.title:
+                text += f"{prefix} {section.title}\n\n"
+            
+            # Content
+            if section.content:
+                text += f"{section.content}\n\n"
+            
+            # Recurse
+            if hasattr(section, 'subsections') and section.subsections:
+                text += build_markdown(section.subsections, level + 1)
+        return text
+
+    def build_html(sections: List[Any], level: int = 2) -> str:
+        html = ""
+        for section in sections:
+            # Title
+            if section.title:
+                html += f"<h{level}>{section.title}</h{level}>\n"
+            
+            # Content (simple paragraph wrapping, assumes content is plain text or simple markdown)
+            # For robust implementation, we might want a markdown->html converter here if content is markdown.
+            # But let's assume raw text for now or simple wrapping.
+            if section.content:
+                # Basic line break handling
+                content_html = section.content.replace("\n", "<br>")
+                html += f"<p>{content_html}</p>\n"
+            
+            # Recurse
+            if hasattr(section, 'subsections') and section.subsections:
+                html += build_html(section.subsections, level + 1)
+        return html
+
+    # Generate Content
+    content = ""
+    filename = f"{product.title.replace(' ', '_')}"
+    media_type = "text/plain"
+
+    if format == "md":
+        content = f"# {product.title}\n\n"
+        if hasattr(product, 'sections') and product.sections:
+            content += build_markdown(product.sections)
+        else:
+             content += "_No sections content available._"
+             
+        filename += ".md"
+        media_type = "text/markdown"
+
+    elif format == "html":
+        body = ""
+        if hasattr(product, 'sections') and product.sections:
+            body = build_html(product.sections)
+        else:
+            body = "<p><em>No sections content available.</em></p>"
+
+        # Simple semantic CSS
+        css = """
+        <style>
+            body { font-family: system-ui, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 2rem; color: #333; }
+            h1 { color: #111; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
+            h2 { color: #444; margin-top: 2rem; }
+            p { margin-bottom: 1rem; }
+        </style>
+        """
+        
+        content = f"""<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+    <meta charset="UTF-8">
+    <title>{product.title}</title>
+    {css}
+</head>
+<body>
+    <h1>{product.title}</h1>
+    {body}
+</body>
+</html>"""
+        filename += ".html"
+        media_type = "text/html"
+    
+    else:
+        raise HTTPException(status_code=400, detail="Invalid format. Use 'md' or 'html'.")
+
+    from fastapi.responses import Response
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )

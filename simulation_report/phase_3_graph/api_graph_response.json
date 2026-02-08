@@ -1,0 +1,24 @@
+{
+  "nodes": [
+    {
+      "id": "4a061df4-15b4-5015-a38c-c1eeaea66004",
+      "label": "[MOCK] Generated response for: INSTRUCTION: Output strictly i...",
+      "status": "germinal",
+      "weight": 1,
+      "domain": "Unclassified"
+    },
+    {
+      "id": "a56ed801-cee6-562d-8f09-758bb9fc6774",
+      "label": "[MOCK] Generated response for: INSTRUCTION: Output strictly i...",
+      "status": "germinal",
+      "weight": 1,
+      "domain": "Unclassified"
+    }
+  ],
+  "edges": [],
+  "metadata": {
+    "total_nodes": 2,
+    "total_edges": 0,
+    "space_id": "0684ece6-599a-4780-a399-667e2e0a5fe2"
+  }
+}

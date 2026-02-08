@@ -5,7 +5,7 @@ from ports.ai_provider import AIProviderPort
 
 class OllamaAdapter(AIProviderPort):
     def __init__(self, host: str = None, model_generate: str = "llama3", model_embed: str = "nomic-embed-text"):
-        self.host = host or os.getenv("OLLAMA_HOST", "http://localhost:11434")
+        self.host = host or os.getenv("OLLAMA_BASE_URL")
         self.model_generate = os.getenv("OLLAMA_MODEL_GENERATE", model_generate)
         self.model_embed = os.getenv("OLLAMA_MODEL_EMBED", model_embed)
         print(f"[OllamaAdapter] Initialized. Host: {self.host}, Models: {self.model_generate}, {self.model_embed}")

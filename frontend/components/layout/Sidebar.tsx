@@ -7,6 +7,8 @@ import { LayoutDashboard, BookOpen, UploadCloud, Library, ShieldAlert } from "lu
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { ThemeSwitcher } from "@/components/settings/ThemeSwitcher"
+import { LanguageSwitcher } from "@/components/settings/LanguageSwitcher"
+import { useLanguage } from "@/contexts/LanguageContext"
 import { api } from "@/services/api"
 import { Trash2, Settings, Plus } from "lucide-react"
 
@@ -23,16 +25,18 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-const navItems = [
-    { href: "/", icon: LayoutDashboard, label: "Tablero" },
-    { href: "/library", icon: Library, label: "Mi Biblioteca" },
-    { href: "/ingest", icon: UploadCloud, label: "Ingesta" },
-    { href: "/publisher", icon: BookOpen, label: "Editorial" },
-    { href: "/audit", icon: ShieldAlert, label: "Auditoría" },
-]
-
 export function Sidebar({ className }: { className?: string }) {
     const pathname = usePathname()
+    const { t } = useLanguage()
+
+    // Navigation items with translations
+    const navItems = [
+        { href: "/", icon: LayoutDashboard, label: t("dashboard") },
+        { href: "/library", icon: Library, label: t("library") },
+        { href: "/ingest", icon: UploadCloud, label: t("ingest") },
+        { href: "/publisher", icon: BookOpen, label: t("editorial") },
+        { href: "/audit", icon: ShieldAlert, label: t("audit") },
+    ]
     // Spaces State
     const [spaces, setSpaces] = useState<{ id: string, name: string }[]>([])
     const [loadingSpaces, setLoadingSpaces] = useState(false)
@@ -163,9 +167,10 @@ export function Sidebar({ className }: { className?: string }) {
             <div className="border-t p-4 flex items-center justify-between bg-card">
                 <Link href="/settings" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-2">
                     <Settings className="h-3 w-3" />
-                    Configuración
+                    {t("settings")}
                 </Link>
                 <div className="flex items-center gap-2">
+                    <LanguageSwitcher />
                     <ThemeSwitcher />
                 </div>
             </div>

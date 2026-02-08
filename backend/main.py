@@ -71,10 +71,21 @@ async def domain_exception_handler(request: Request, exc: DomainError):
         },
     )
 
+from adapters.api.errors import APIError, api_error_handler
+app.add_exception_handler(APIError, api_error_handler)
+
 # CORS (Allow Frontend)
+# CORS - Configuración para producción
+import os
+
+# Coolify configurará el dominio real via variable de entorno
+# Ej: "https://kolozus.tudominio.com"
+allowed_origins_env = os.getenv("CORS_ALLOWED_ORIGINS", "")
+allowed_origins = allowed_origins_env.split(",") if allowed_origins_env else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

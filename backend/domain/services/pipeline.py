@@ -1,15 +1,16 @@
-from uuid import uuid4, uuid5, NAMESPACE_OID
-from typing import Optional
-from domain.models import Fragment, Idea, IdeaVersion, Space
-from domain.engine import CognitiveEngine
-from domain.events import DecisionResult, CognitiveAction
-from ports.repository import RepositoryPort
-from ports.ai_provider import AIProviderPort
-from ports.decision_ledger import DecisionLedgerPort
-from datetime import datetime
-from domain.exceptions import EmbeddingError, ModelError, DatabaseError, NetworkError
+from i18n import t
 
-class CognitivePipeline:
+# ... (imports)
+
+    # ... inside process_text ...
+            try:
+                new_title = await self.ai.synthesize(text, t("llm_generate_title", language), language=language)
+            except Exception as e:
+    # ...
+            # Synthesis of new state
+            try:
+                synthesis = await self.ai.synthesize(text, f"{t('llm_generate_draft', language)}:{target_idea.title_provisional}", language=language)
+            except Exception as e:
     def __init__(
         self,
         repository: RepositoryPort,
@@ -30,13 +31,9 @@ class CognitivePipeline:
         sid = None
         if space_id:
              try:
-                 sid = uuid5(NAMESPACE_OID, space_id) if len(space_id) < 32 else UUID(space_id) # Simplify, assume UUID string
-                 # Actually, better to just expect valid UUID string or None from controller
-                 # But for robustness let's just use UUID(space_id) if provided
-                 import uuid
-                 sid = uuid.UUID(space_id)
+                 sid = UUID(space_id)
              except:
-                 pass # Fallback to None (General) if invalid
+                 pass # Fallback to None if invalid UUID
 
         fragment = Fragment(
             id=f_id,

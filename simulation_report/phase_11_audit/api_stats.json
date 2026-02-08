@@ -1,0 +1,63 @@
+{
+  "spaces_count": 4,
+  "fragments_count": 6,
+  "ideas_count": 6,
+  "products_count": 10,
+  "vector_count": 12,
+  "recent_logs": [
+    {
+      "id": "9dd880cd-afb2-48e4-8eff-cdb50ed41867",
+      "timestamp": "2026-02-07T07:05:50.135192",
+      "fragment_id": "90b264e6-91c6-5bff-8f3b-4558ecc0c0fc",
+      "action": "CREATE_NEW",
+      "target": "a56ed801-cee6-562d-8f09-758bb9fc6774",
+      "reasoning": "No candidate met default threshold (Best: 0.0098).",
+      "confidence": 1.0
+    },
+    {
+      "id": "dac6e660-78df-4459-b3a2-4c6858bdc2b2",
+      "timestamp": "2026-02-07T07:05:50.078294",
+      "fragment_id": "d419ea76-9f6b-5cb9-910a-b883491a0635",
+      "action": "CREATE_NEW",
+      "target": "4a061df4-15b4-5015-a38c-c1eeaea66004",
+      "reasoning": "No candidates provided. Must create new idea.",
+      "confidence": 1.0
+    },
+    {
+      "id": "a7290eb8-3c38-4196-88da-71cab059ad0a",
+      "timestamp": "2026-02-06T19:20:42.416715",
+      "fragment_id": "9140a4b8-fbfe-5c41-8438-d46bb29e4afd",
+      "action": "CREATE_NEW",
+      "target": "b1bb25c7-84e6-5a30-8f2d-91f22ef6df53",
+      "reasoning": "No candidate met default threshold (Best: 0.0680).",
+      "confidence": 1.0
+    },
+    {
+      "id": "96325c7a-4e8d-4a7a-a335-3b0a7517aab8",
+      "timestamp": "2026-02-06T19:20:42.353975",
+      "fragment_id": "27836634-8187-514a-8ef9-154e772b4c60",
+      "action": "CREATE_NEW",
+      "target": "42a58166-038d-57ed-8415-565a5015fbc8",
+      "reasoning": "No candidate met default threshold (Best: 0.0261).",
+      "confidence": 1.0
+    },
+    {
+      "id": "5aa50e82-a016-4c29-9246-3326b0f875f6",
+      "timestamp": "2026-02-06T19:20:42.291453",
+      "fragment_id": "6638452b-766d-5000-ab8f-ea39b1dc86ef",
+      "action": "CREATE_NEW",
+      "target": "29cb756d-dc8a-5de4-bb62-d28e53fbb6e0",
+      "reasoning": "No candidate met default threshold (Best: -0.0130).",
+      "confidence": 1.0
+    },
+    {
+      "id": "e56be68d-3bbe-4fc5-8879-0c20c85ac3d9",
+      "timestamp": "2026-02-06T19:20:41.215928",
+      "fragment_id": "4b3ebcff-a444-5be0-9ef9-bd1579e91240",
+      "action": "CREATE_NEW",
+      "target": "98ff40b5-71a7-5180-a2a4-54f1d433a909",
+      "reasoning": "No candidates provided. Must create new idea.",
+      "confidence": 1.0
+    }
+  ]
+}

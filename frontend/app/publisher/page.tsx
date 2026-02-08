@@ -2,95 +2,43 @@
 
 import { useState, useEffect } from "react"
 import { api } from "@/services/api"
-import { Space, Product } from "@/types"
-import { CreateProductDialog } from "@/components/publisher/CreateProductDialog"
-import { ProductList } from "@/components/publisher/ProductList"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export default function PublisherPage() {
-    const [spaces, setSpaces] = useState<Space[]>([])
-    const [selectedSpaceId, setSelectedSpaceId] = useState<string>("")
-    const [products, setProducts] = useState<Product[]>([])
-    const [loading, setLoading] = useState(false)
+    const { t } = useLanguage()
+    const [products, setProducts] = useState([])
+    const [loading, setLoading] = useState(true)
 
-    // Fetch Spaces on load
     useEffect(() => {
-        const fetchSpaces = async () => {
+        async function fetchProducts() {
             try {
-                const res = await api.get<Space[]>("/spaces/")
-                setSpaces(res.data)
-                if (res.data.length > 0) {
-                    setSelectedSpaceId(res.data[0].id)
-                }
-            } catch (e) {
-                console.error(e)
+                const res = await api.get("/products/")
+                setProducts(res.data)
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setLoading(false)
             }
         }
-        fetchSpaces()
-    }, [])
-
-    // Fetch Products when space changes
-    const fetchProducts = async () => {
-        if (!selectedSpaceId) return
-        setLoading(true)
-        try {
-            const res = await api.get<Product[]>("/products/", {
-                params: { space_id: selectedSpaceId }
-            })
-            setProducts(res.data)
-        } catch (error) {
-            console.error("Error fetching products", error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    useEffect(() => {
         fetchProducts()
-    }, [selectedSpaceId])
-
-    const handleDelete = async (id: string) => {
-        if (!confirm("¿Eliminar producto?")) return
-        try {
-            await api.delete(`/products/${id}`)
-            fetchProducts()
-        } catch (error) {
-            console.error(error)
-        }
-    }
+    }, [])
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Estudio Editorial</h2>
-                    <p className="text-muted-foreground">Convierte tu conocimiento en productos terminados.</p>
-                </div>
-                <CreateProductDialog onProductCreated={fetchProducts} />
-            </div>
-
-            <div className="flex items-center gap-4 bg-muted/20 p-4 rounded-lg">
-                <span className="text-sm font-medium">Filtrar por Espacio:</span>
-                <div className="w-[300px]">
-                    <Select value={selectedSpaceId} onValueChange={setSelectedSpaceId}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Selecciona un espacio..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {spaces.map(s => (
-                                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">{t("publisherTitle")}</h1>
+                <p className="text-muted-foreground">{t("publisherSubtitle")}</p>
             </div>
 
             {loading ? (
-                <div className="flex justify-center p-12">
-                    <span className="animate-pulse">Cargando productos...</span>
+                <div className="p-8 text-center text-muted-foreground">
+                    {t("loadingProducts")}
                 </div>
             ) : (
-                <ProductList products={products} onDelete={handleDelete} />
+                <div className="grid gap-4">
+                    {/* Product list would go here */}
+                    <p className="text-sm text-muted-foreground">{t("myProducts")}</p>
+                </div>
             )}
         </div>
     )
