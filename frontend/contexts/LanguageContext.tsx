@@ -13,7 +13,7 @@ const translations: Record<Language, Translations> = {
         // Navigation
         dashboard: "Tablero",
         library: "Mi Biblioteca",
-        ingest: "Ingesta",
+        ingest: "Cargar Datos",
         editorial: "Editorial",
         audit: "Auditoría",
         settings: "Configuración",
@@ -32,14 +32,14 @@ const translations: Record<Language, Translations> = {
         searchError: "Error de búsqueda",
         knowledgeGraph: "Grafo de Conocimiento",
         searchPlaceholder: "Busca ideas, fragmentos o conceptos...",
-        ingestText: "Ingestar Texto",
+        ingestText: "Cargar Texto",
         loadingGraph: "Cargando Grafo...",
 
         // Ingest Page
-        ingestTitle: "Ingesta",
+        ingestTitle: "Importar Datos",
         ingestSubtitle: "Alimenta tu sistema con nueva información.",
         loadingForm: "Cargando formulario...",
-        ingestCardTitle: "Ingesta de Conocimiento",
+        ingestCardTitle: "Carga de Conocimiento",
         ingestCardDescription: "Transforma texto crudo en fragmentos cognitivos e ideas conectadas.",
         destinationSpace: "Espacio de Destino",
         selectSpacePlaceholder: "Selecciona un espacio...",
@@ -49,10 +49,10 @@ const translations: Record<Language, Translations> = {
         contentPlaceholder: "Pega aquí tu texto, notas o extractos...",
         charactersLabel: "caracteres",
         processing: "Procesando...",
-        ingestButtonLabel: "Ingestar",
-        batchLabel: "(Batch)",
-        ingestSuccessMessage: "Ingesta completada correctamente",
-        ingestErrorMessage: "Error al ingerir texto. Revisa la consola.",
+        ingestButtonLabel: "Procesar",
+        batchLabel: "(Lote)",
+        ingestSuccessMessage: "Datos procesados correctamente",
+        ingestErrorMessage: "Error al procesar texto. Revisa la consola.",
 
         // Publisher/Editorial Page
         publisherTitle: "Estudio Editorial",
