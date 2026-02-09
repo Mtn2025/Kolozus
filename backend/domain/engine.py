@@ -26,16 +26,16 @@ class CognitiveEngine:
         # Threshold Configuration based on Mode
         if mode == "explorer":
             # High barrier for attachment, encourages new ideas
-            ATTACH_THRESHOLD = 0.92
-            AMBIGUITY_THRESHOLD = 0.85
+            ATTACH_THRESHOLD = 0.85
+            AMBIGUITY_THRESHOLD = 0.75
         elif mode == "consolidator":
             # Low barrier, encourages grouping
-            ATTACH_THRESHOLD = 0.75
-            AMBIGUITY_THRESHOLD = 0.60
+            ATTACH_THRESHOLD = 0.60
+            AMBIGUITY_THRESHOLD = 0.45
         else:
-            # Balanced
-            ATTACH_THRESHOLD = 0.88
-            AMBIGUITY_THRESHOLD = 0.70
+            # Balanced - DEFAULT MODE
+            ATTACH_THRESHOLD = 0.70
+            AMBIGUITY_THRESHOLD = 0.55
         
         # 1. Hard Rule: Empty candidates -> Create New
         if not candidates_with_score:
