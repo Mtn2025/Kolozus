@@ -64,8 +64,10 @@ export function AIStrategySelector() {
         try {
             await api.post("/api/ai/config", { profile_name: profileId })
             setCurrentProfile(profileId)
+            toast.success("Perfil de IA actualizado correctamente")
         } catch (error) {
             console.error("Error updating profile", error)
+            toast.error("Error al actualizar el perfil de IA")
         } finally {
             setLoading(false)
         }
