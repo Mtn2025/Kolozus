@@ -73,27 +73,8 @@ services:
     networks:
       - kolozus_network
 
-  # Ollama (Opcional - solo si AI_PROVIDER=ollama)
-  ollama:
-    image: ollama/ollama:latest
-    container_name: kolozus-ollama
-    volumes:
-      - ollama_data:/root/.ollama
-    environment:
-      OLLAMA_HOST: 0.0.0.0:11434
-    ports:
-      - "11434:11434"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:11434" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - kolozus_network
-
 volumes:
   postgres_data:
-  ollama_data:
 
 
 networks:
