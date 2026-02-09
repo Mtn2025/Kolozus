@@ -15,9 +15,9 @@ def init_db():
         host = parsed.hostname
         port = parsed.port or 5432
     else:
-        db_name = os.getenv("POSTGRES_DB", "kolozus")
-        user = os.getenv("POSTGRES_USER", "postgres")
-        password = os.getenv("POSTGRES_PASSWORD", "postgres")
+        db_name = os.getenv("POSTGRES_DB", "kolozus_main")
+        user = os.getenv("POSTGRES_USER", "kolozus")
+        password = os.getenv("POSTGRES_PASSWORD", "kolozus_strong_password")
         host = os.getenv("POSTGRES_HOST", "db")
         port = os.getenv("POSTGRES_PORT", "5432")
 
