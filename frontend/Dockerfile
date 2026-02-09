@@ -39,6 +39,18 @@ RUN echo "=== Starting Next.js build ===" && \
   ls -la && \
   npm run build 2>&1 | tee build.log || (cat build.log && exit 1)
 
+# Verify standalone output was created
+RUN echo "=== Verifying build output ===" && \
+  ls -la .next/ && \
+  if [ ! -d ".next/standalone" ]; then \
+  echo "ERROR: .next/standalone directory not found!"; \
+  echo "Build completed but standalone output missing."; \
+  echo "Checking next.config.ts..."; \
+  cat next.config.ts; \
+  exit 1; \
+  fi && \
+  echo "✓ Standalone output found"
+
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
