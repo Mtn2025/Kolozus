@@ -60,6 +60,9 @@ services:
     container_name: kolozus-frontend
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.frontend.loadbalancer.server.port=${FRONTEND_PORT}"
     depends_on:
       - backend
     healthcheck:
