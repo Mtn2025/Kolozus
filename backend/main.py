@@ -29,6 +29,9 @@ def init_db(retries=10, delay=2):
                 conn.execute(text("ALTER TABLE fragments ADD COLUMN IF NOT EXISTS language VARCHAR DEFAULT 'en';"))
                 conn.execute(text("ALTER TABLE ideas ADD COLUMN IF NOT EXISTS language VARCHAR DEFAULT 'en';"))
                 conn.execute(text("ALTER TABLE idea_versions ADD COLUMN IF NOT EXISTS language VARCHAR DEFAULT 'en';"))
+                # Fix for spaces table missing columns
+                conn.execute(text("ALTER TABLE spaces ADD COLUMN IF NOT EXISTS icon VARCHAR DEFAULT 'folder';"))
+                conn.execute(text("ALTER TABLE spaces ADD COLUMN IF NOT EXISTS color VARCHAR DEFAULT '#cbd5e1';"))
                 conn.commit()
             
             print("DB Schema initialized successfully.")
