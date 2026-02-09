@@ -21,6 +21,7 @@ class Space(BaseModel):
     id: UUID = uuid4()
     name: str
     description: Optional[str] = None
+    icon: str = "folder"
     color: str = "#cbd5e1"
     created_at: datetime = datetime.now()
 
