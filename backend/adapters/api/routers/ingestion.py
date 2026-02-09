@@ -14,6 +14,7 @@ class IngestRequest(BaseModel):
     source: str | None = None
     mode: str = "default" # default, explorer, consolidator
     space_id: str | None = None # UUID string
+    model_name: str | None = None # Optional model override
 
 @router.post("/", response_model=Dict[str, Any])
 async def ingest_fragment(

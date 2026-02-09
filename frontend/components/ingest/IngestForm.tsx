@@ -35,6 +35,7 @@ export function IngestForm({ onSuccess }: IngestFormProps) {
     const [spaceId, setSpaceId] = useState<string>(defaultSpaceId || "")
     const [isBatch, setIsBatch] = useState(false)
     const [mode, setMode] = useState("default")
+    const [model, setModel] = useState("gpt-4o") // Default high-end model
 
     useEffect(() => {
         const fetchSpaces = async () => {
@@ -64,7 +65,9 @@ export function IngestForm({ onSuccess }: IngestFormProps) {
                     ? text.split(/\n\n+/).filter(t => t.trim().length > 0)
                     : text,
                 space_id: spaceId,
+                space_id: spaceId,
                 mode: mode,
+                model_name: model,
                 language: language // Pass current language to backend
             }
 
@@ -109,6 +112,39 @@ export function IngestForm({ onSuccess }: IngestFormProps) {
                                 ))}
                             </SelectContent>
                         </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Strategy (Mode) Selection */}
+                        <div className="space-y-2">
+                            <Label>{t("ingestStrategy") || "Estrategia"}</Label>
+                            <Select value={mode} onValueChange={setMode}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="default">Automática (Default)</SelectItem>
+                                    <SelectItem value="explorer">Exploración (Guided)</SelectItem>
+                                    <SelectItem value="consolidator">Consolidación (Flux)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Model Selection */}
+                        <div className="space-y-2">
+                            <Label>{t("ingestModel") || "Modelo IA"}</Label>
+                            <Select value={model} onValueChange={setModel}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                                    <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
+                                    <SelectItem value="llama-3-70b">Llama 3 70B</SelectItem>
+                                    <SelectItem value="deepseek-coder">DeepSeek Coder</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     {/* Mode & Batch Toggles */}
