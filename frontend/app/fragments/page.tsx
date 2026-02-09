@@ -1,5 +1,9 @@
 "use client"
 
+// Force dynamic rendering (disable static export for this page)
+export const dynamic = 'force-dynamic'
+
+
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Trash2, RefreshCw, ArrowLeft, CheckCircle2 } from "lucide-react"
