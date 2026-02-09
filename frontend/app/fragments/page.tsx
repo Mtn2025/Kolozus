@@ -45,7 +45,7 @@ export default function FragmentsPage() {
     const fetchFragments = async () => {
         setLoading(true)
         try {
-            const res = await api.get<Fragment[]>('/fragments')
+            const res = await api.get<Fragment[]>('/query/fragments')
             setFragments(res.data)
         } catch (error) {
             console.error("Error loading fragments", error)
