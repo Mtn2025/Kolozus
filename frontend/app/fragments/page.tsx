@@ -1,13 +1,8 @@
 "use client"
 
-// Force dynamic rendering (disable static export for this page)
-export const dynamic = 'force-dynamic'
-
-
-import { useState, useEffect, Suspense } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import { Trash2, RefreshCw, ArrowLeft, CheckCircle2 } from "lucide-react"
-import Link from "next/link"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Trash2, RefreshCw, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -34,10 +29,8 @@ interface Fragment {
     space_id?: string
 }
 
-function FragmentsContent() {
-    const searchParams = useSearchParams()
+export default function FragmentsPage() {
     const router = useRouter()
-    const spaceId = searchParams?.get("space_id")
 
     const [fragments, setFragments] = useState<Fragment[]>([])
     const [loading, setLoading] = useState(true)
@@ -47,14 +40,12 @@ function FragmentsContent() {
 
     useEffect(() => {
         fetchFragments()
-    }, [spaceId])
+    }, [])
 
     const fetchFragments = async () => {
         setLoading(true)
         try {
-            // If space_id provided, filter by space
-            const endpoint = spaceId ? `/fragments?space_id=${spaceId}` : '/fragments'
-            const res = await api.get<Fragment[]>(endpoint)
+            const res = await api.get<Fragment[]>('/fragments')
             setFragments(res.data)
         } catch (error) {
             console.error("Error loading fragments", error)
@@ -89,14 +80,12 @@ function FragmentsContent() {
 
     const executeDelete = async () => {
         try {
-            // Soft delete each fragment
             for (const id of deletingIds) {
                 await api.post(`/trash/fragment/${id}`)
             }
 
             toast.success(`${deletingIds.length} fragmento(s) enviado(s) a papelera`)
 
-            // Remove from UI
             setFragments(fragments.filter(f => !deletingIds.includes(f.id)))
             setSelectedIds(new Set())
             setDeletingIds([])
@@ -135,40 +124,22 @@ function FragmentsContent() {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    {spaceId && (
-                        <Link href={`/spaces/${spaceId}`}>
-                            <Button variant="ghost" size="icon">
-                                <ArrowLeft className="h-4 w-4" />
-                            </Button>
-                        </Link>
-                    )}
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">
-                            Gestión de Fragmentos
-                        </h1>
-                        <p className="text-muted-foreground">
-                            {spaceId ? "Fragmentos del espacio actual" : "Todos los fragmentos"}
-                        </p>
-                    </div>
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">
+                        Gestión de Fragmentos
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Todos los fragmentos del sistema
+                    </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={fetchFragments}
-                        size="sm"
-                    >
+                    <Button variant="outline" onClick={fetchFragments} size="sm">
                         <RefreshCw className="mr-2 h-4 w-4" />
                         Refrescar
                     </Button>
                     {selectedIds.size > 0 && (
-                        <Button
-                            variant="destructive"
-                            onClick={handleDeleteConfirm}
-                            size="sm"
-                        >
+                        <Button variant="destructive" onClick={handleDeleteConfirm} size="sm">
                             <Trash2 className="mr-2 h-4 w-4" />
                             Eliminar ({selectedIds.size})
                         </Button>
@@ -176,7 +147,6 @@ function FragmentsContent() {
                 </div>
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
                     <CardHeader className="pb-3">
@@ -200,7 +170,6 @@ function FragmentsContent() {
                 </Card>
             </div>
 
-            {/* Select All */}
             {fragments.length > 0 && (
                 <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/30">
                     <Checkbox
@@ -214,12 +183,11 @@ function FragmentsContent() {
                 </div>
             )}
 
-            {/* Fragments List */}
             {fragments.length === 0 ? (
                 <Card>
                     <CardContent className="py-12 text-center">
                         <p className="text-muted-foreground">
-                            No hay fragmentos {spaceId && "en este espacio"}
+                            No hay fragmentos
                         </p>
                     </CardContent>
                 </Card>
@@ -228,8 +196,7 @@ function FragmentsContent() {
                     {fragments.map((fragment) => (
                         <Card
                             key={fragment.id}
-                            className={`transition-all ${selectedIds.has(fragment.id) ? "border-primary bg-primary/5" : ""
-                                }`}
+                            className={`transition-all ${selectedIds.has(fragment.id) ? "border-primary bg-primary/5" : ""}`}
                         >
                             <CardContent className="p-4">
                                 <div className="flex items-start gap-4">
@@ -272,7 +239,6 @@ function FragmentsContent() {
                 </div>
             )}
 
-            {/* Delete Confirmation Dialog */}
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -296,20 +262,5 @@ function FragmentsContent() {
                 </AlertDialogContent>
             </AlertDialog>
         </div>
-    )
-}
-
-export default function FragmentsPage() {
-    return (
-        <Suspense fallback={
-            <div className="flex items-center justify-center h-[calc(100vh-80px)]">
-                <div className="text-center space-y-2">
-                    <RefreshCw className="h-8 w-8 animate-spin mx-auto text-primary" />
-                    <div className="text-lg font-medium">Cargando fragmentos...</div>
-                </div>
-            </div>
-        }>
-            <FragmentsContent />
-        </Suspense>
     )
 }
