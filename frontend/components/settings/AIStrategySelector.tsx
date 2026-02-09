@@ -52,7 +52,7 @@ export function AIStrategySelector() {
 
     const fetchConfig = async () => {
         try {
-            const res = await api.get<AIProfile>("/ai/config")
+            const res = await api.get<AIProfile>("/api/ai/config")
             setCurrentProfile(res.data.name)
         } catch (error) {
             console.error("Error fetching AI config", error)
@@ -62,7 +62,7 @@ export function AIStrategySelector() {
     const handleSelect = async (profileId: string) => {
         setLoading(true)
         try {
-            await api.post("/ai/config", { profile_name: profileId })
+            await api.post("/api/ai/config", { profile_name: profileId })
             setCurrentProfile(profileId)
         } catch (error) {
             console.error("Error updating profile", error)
