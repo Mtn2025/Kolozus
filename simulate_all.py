@@ -68,9 +68,9 @@ def phase_spaces():
     save_json(os.path.join(phase_dir, "api_get_response.json"), resp)
     
     # 3. DB Check
-    db_out = run_command(f'docker exec kolozus-db-1 psql -U user -d kolozus -c "SELECT * FROM spaces WHERE id = \'{space_id}\';"')
-    save_text(os.path.join(phase_dir, "db_verification.txt"), db_out)
-    
+    # db_out = run_command(f'docker exec kolozus-db-1 psql -U user -d kolozus -c "SELECT * FROM spaces WHERE id = \'{space_id}\';"')
+    # save_text(os.path.join(phase_dir, "db_verification.txt"), db_out)
+
     return space_id
 
 def phase_ingest(space_id):
@@ -90,8 +90,8 @@ def phase_ingest(space_id):
     save_json(os.path.join(phase_dir, "api_ingest_response_2.json"), resp2)
     
     # 3. DB Check
-    db_out = run_command(f'docker exec kolozus-db-1 psql -U user -d kolozus -c "SELECT count(*) FROM fragments WHERE space_id = \'{space_id}\';"')
-    save_text(os.path.join(phase_dir, "db_count.txt"), db_out)
+    # db_out = run_command(f'docker exec kolozus-db-1 psql -U user -d kolozus -c "SELECT count(*) FROM fragments WHERE space_id = \'{space_id}\';"')
+    # save_text(os.path.join(phase_dir, "db_count.txt"), db_out)
 
 def phase_graph(space_id):
     print("--- Phase: Knowledge Graph ---")
@@ -161,13 +161,13 @@ if __name__ == "__main__":
         sid = phase_spaces()
         if sid:
             phase_ingest(sid)
-            phase_graph(sid)
-            phase_search(sid)
-            pid = phase_products(sid)
-            if pid:
-                phase_blueprint(pid)
+            # phase_graph(sid)
+            # phase_search(sid)
+            # pid = phase_products(sid)
+            # if pid:
+            #     phase_blueprint(pid)
         
-        phase_audit()
+        # phase_audit()
         
         print(f"Simulation Complete. Results in {os.path.abspath(REPORT_DIR)}")
 

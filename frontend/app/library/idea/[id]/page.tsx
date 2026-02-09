@@ -8,18 +8,36 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Cpu, Calendar, Tag, FileText } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { toast } from "sonner"
+import { MaturityIndicator } from "@/components/library/MaturityIndicator"
+
+interface MaturityData {
+    score: number
+    status: string
+    emoji: string
+    ready_for_product: boolean
+}
+
+interface MetricsData {
+    fragment_count: number
+    version_count: number
+    age_days: number
+}
 
 interface Idea {
     id: string
-    title: string
+    title_provisional?: string
+    title?: string
     summary?: string
     status: string
     domain?: string
     created_at: string
     updated_at?: string
+    maturity?: MaturityData
+    metrics?: MetricsData
     fragments?: Array<{
         id: string
-        text: string
+        raw_text?: string
+        text?: string
         created_at: string
     }>
 }
@@ -39,7 +57,7 @@ export default function IdeaDetailPage() {
         try {
             setLoading(true)
             // Try to fetch idea from backend
-            const res = await api.get(`/query/ideas/${params.id}`)
+            const res = await api.get(`/query/idea/${params.id}`)
             setIdea(res.data)
         } catch (error) {
             console.error("Error loading idea:", error)
@@ -95,7 +113,7 @@ export default function IdeaDetailPage() {
                         </div>
                         <div className="flex-1">
                             <CardTitle className="text-2xl mb-2">
-                                {idea.title || "Sin título"}
+                                {idea.title_provisional || idea.title || "Sin título"}
                             </CardTitle>
                             <div className="flex gap-4 text-sm text-muted-foreground">
                                 <div className="flex items-center gap-1">
@@ -117,6 +135,14 @@ export default function IdeaDetailPage() {
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                    {/* Maturity Indicator */}
+                    {idea.maturity && idea.metrics && (
+                        <MaturityIndicator
+                            maturity={idea.maturity}
+                            metrics={idea.metrics}
+                        />
+                    )}
+
                     {/* Summary */}
                     {idea.summary && (
                         <div>
@@ -138,7 +164,7 @@ export default function IdeaDetailPage() {
                                     <Card key={fragment.id} className="bg-muted/30">
                                         <CardContent className="p-4">
                                             <p className="text-sm leading-relaxed">
-                                                {fragment.text}
+                                                {fragment.raw_text || fragment.text}
                                             </p>
                                             <div className="text-xs text-muted-foreground mt-2">
                                                 {new Date(fragment.created_at).toLocaleString()}

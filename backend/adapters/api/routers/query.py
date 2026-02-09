@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Header
 from typing import List, Dict, Any, Optional
 from uuid import UUID
+from datetime import datetime
 
 from infrastructure.dependencies import get_repository, get_ai_provider
 from ports.repository import RepositoryPort
@@ -36,20 +37,50 @@ async def get_fragment_detail(
         raise HTTPException(status_code=404, detail=t("space_not_found", lang).replace("Espacio", "Fragmento").replace("Space", "Fragment"))
     return fragment
 
-@router.get("/idea/{idea_id}", response_model=Idea)
+@router.get("/idea/{idea_id}", response_model=Dict[str, Any])
 async def get_idea_detail(
     idea_id: UUID,
     repo: RepositoryPort = Depends(get_repository),
     accept_language: str = Header(default="en", alias="Accept-Language")
 ):
     """
-    Get full details of an Idea, including its Semantic Profile (centroid).
+    Get full details of an Idea, including maturity metrics and related fragments.
     """
+    from domain.services.maturity_calculator import MaturityCalculator
+    
     idea = await repo.get_idea(idea_id)
     if not idea:
         lang = get_language_from_header(accept_language)
         raise HTTPException(status_code=404, detail=t("product_not_found", lang).replace("Producto", "Idea").replace("Product", "Idea"))
-    return idea
+    
+    # Get related data for maturity calculation
+    fragments = await repo.list_fragments_by_idea(idea_id)
+    versions = await repo.list_idea_versions(idea_id)
+    
+    # Calculate maturity
+    maturity_score = MaturityCalculator.calculate(idea, fragments, len(versions))
+    maturity_status = MaturityCalculator.get_status_label(maturity_score)
+    maturity_emoji = MaturityCalculator.get_emoji(maturity_score)
+    ready_for_product = MaturityCalculator.is_ready_for_product(maturity_score)
+    
+    # Convert idea to dict and enhance with metrics
+    idea_dict = idea.dict() if hasattr(idea, 'dict') else idea.__dict__
+    
+    return {
+        **idea_dict,
+        "maturity": {
+            "score": maturity_score,
+            "status": maturity_status,
+            "emoji": maturity_emoji,
+            "ready_for_product": ready_for_product
+        },
+        "metrics": {
+            "fragment_count": len(fragments),
+            "version_count": len(versions),
+            "age_days": (datetime.utcnow() - idea.created_at).days if hasattr(idea, 'created_at') else 0
+        },
+        "fragments": [f.dict() if hasattr(f, 'dict') else f.__dict__ for f in fragments[:10]]  # Limit to 10 for performance
+    }
 
 @router.get("/idea/{idea_id}/history", response_model=List[IdeaVersion])
 async def get_idea_history(

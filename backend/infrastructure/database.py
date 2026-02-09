@@ -20,7 +20,7 @@ if not DATABASE_URL:
         # We will log a warning or use generic defaults, BUT respecting user request:
         # "No hardcoding". So we trust the env vars.
         # If missing, we let it fail or default to standard 'postgres'.
-        postgres_host = postgres_host or "db"
+        postgres_host = postgres_host or "localhost" # Use localhost for local dev/simulation
         postgres_db = postgres_db or "postgres"
     
     DATABASE_URL = f"postgresql://{postgres_user}:{postgres_password}@{postgres_host}:{postgres_port}/{postgres_db}"
