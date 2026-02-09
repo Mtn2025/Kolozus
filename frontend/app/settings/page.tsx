@@ -2,6 +2,7 @@
 
 import { LanguageSwitcher } from "@/components/settings/LanguageSwitcher"
 import { ThemeSwitcher } from "@/components/settings/ThemeSwitcher"
+import { AIStrategySelector } from "@/components/settings/AIStrategySelector"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useLanguage } from "@/contexts/LanguageContext"
 
@@ -33,6 +34,18 @@ export default function SettingsPage() {
                         </div>
                         <LanguageSwitcher />
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>{t("aiStrategy") || "Estrategia de IA"}</CardTitle>
+                    <CardDescription>
+                        {t("aiStrategyDesc") || "Elige el perfil de modelos según tus necesidades"}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <AIStrategySelector />
                 </CardContent>
             </Card>
         </div>
