@@ -128,48 +128,47 @@ export function IngestForm({ onSuccess }: IngestFormProps) {
                         </div>
 
                     </div>
-                </div>
 
-                {/* Mode & Batch Toggles */}
-                <div className="flex items-center justify-between gap-4">
-                    <div className="space-y-0.5">
-                        <Label className="text-base">{t("batchMode")}</Label>
-                        <div className="text-xs text-muted-foreground">
-                            {t("batchModeHelp")}
+                    {/* Mode & Batch Toggles */}
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="space-y-0.5">
+                            <Label className="text-base">{t("batchMode")}</Label>
+                            <div className="text-xs text-muted-foreground">
+                                {t("batchModeHelp")}
+                            </div>
+                        </div>
+                        <Switch checked={isBatch} onCheckedChange={setIsBatch} />
+                    </div>
+
+                    {/* Text Area */}
+                    <div className="space-y-2">
+                        <Label>{t("contentLabel")}</Label>
+                        <Textarea
+                            placeholder={t("contentPlaceholder")}
+                            className="min-h-[200px] font-mono text-sm"
+                            value={text}
+                            onChange={(e) => setText(e.target.value)}
+                            required
+                        />
+                        <div className="text-xs text-muted-foreground text-right">
+                            {text.length} {t("charactersLabel")}
                         </div>
                     </div>
-                    <Switch checked={isBatch} onCheckedChange={setIsBatch} />
-                </div>
 
-                {/* Text Area */}
-                <div className="space-y-2">
-                    <Label>{t("contentLabel")}</Label>
-                    <Textarea
-                        placeholder={t("contentPlaceholder")}
-                        className="min-h-[200px] font-mono text-sm"
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        required
-                    />
-                    <div className="text-xs text-muted-foreground text-right">
-                        {text.length} {t("charactersLabel")}
-                    </div>
-                </div>
-
-            </CardContent>
-            <CardFooter className="justify-end gap-2">
-                <Button type="submit" disabled={loading || !spaceId || !text.trim()}>
-                    {loading ? (
-                        <>{t("processing")}</>
-                    ) : (
-                        <>
-                            <UploadCloud className="mr-2 h-4 w-4" />
-                            {t("ingestButtonLabel")} {isBatch ? t("batchLabel") : ""}
-                        </>
-                    )}
-                </Button>
-            </CardFooter>
-        </form>
+                </CardContent>
+                <CardFooter className="justify-end gap-2">
+                    <Button type="submit" disabled={loading || !spaceId || !text.trim()}>
+                        {loading ? (
+                            <>{t("processing")}</>
+                        ) : (
+                            <>
+                                <UploadCloud className="mr-2 h-4 w-4" />
+                                {t("ingestButtonLabel")} {isBatch ? t("batchLabel") : ""}
+                            </>
+                        )}
+                    </Button>
+                </CardFooter>
+            </form>
         </Card >
     )
 }
