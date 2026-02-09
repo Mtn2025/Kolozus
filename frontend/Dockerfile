@@ -34,7 +34,10 @@ ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 # Build the Next.js application
-RUN npm run build
+RUN echo "=== Starting Next.js build ===" && \
+  echo "NEXT_PUBLIC_API_URL: $NEXT_PUBLIC_API_URL" && \
+  ls -la && \
+  npm run build 2>&1 | tee build.log || (cat build.log && exit 1)
 
 # Production image, copy all the files and run next
 FROM base AS runner
