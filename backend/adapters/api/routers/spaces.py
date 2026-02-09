@@ -1,62 +1,48 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi import APIRouter, Depends, HTTPException, Header
 from typing import List, Dict, Any
 from uuid import UUID
+
 from infrastructure.dependencies import get_repository
 from ports.repository import RepositoryPort
 from domain.models import Space
-from pydantic import BaseModel
 from i18n import t, get_language_from_header
 
-router = APIRouter(prefix="/spaces", tags=["Spaces"])
+router = APIRouter(prefix="/spaces", tags=["spaces"])
 
-class SpaceCreate(BaseModel):
-    name: str
-    description: str | None = None
-    icon: str | None = "folder"
-    color: str | None = "blue"
+class SpaceCreate:
+    def __init__(self, name: str, description: str = None, icon: str = None, color: str = None):
+        self.name = name
+        self.description = description
+        self.icon = icon
+        self.color = color
 
-class SpaceUpdate(BaseModel):
-    name: str | None = None
-    description: str | None = None
-    icon: str | None = None
-    color: str | None = None
+class SpaceUpdate:
+    def __init__(self, name: str = None, description: str = None, icon: str = None, color: str = None):
+        self.name = name
+        self.description = description
+        self.icon = icon
+        self.color = color
+
+@router.get("/{space_id}", response_model=Space)
+def get_space(
+    space_id: UUID,
+    repo: RepositoryPort = Depends(get_repository),
+    accept_language: str = Header(default="en", alias="Accept-Language")
+):
+    lang = get_language_from_header(accept_language)
+    space = repo.get_space(space_id)
+    if not space:
+        raise HTTPException(status_code=404, detail=t("space_not_found", lang))
+    return space
 
 @router.get("/", response_model=List[Space])
 def list_spaces(
     repo: RepositoryPort = Depends(get_repository)
 ):
-    return repo.list_spaces()
+    spaces = repo.list_spaces()
+    return spaces
 
-from adapters.api.errors import APIError
-
-@router.get("/{space_id}", response_model=Space)
-def get_space(
-    space_id: UUID, 
-    repo: RepositoryPort = Depends(get_repository),
-    accept_language: str = Header(default="en", alias="Accept-Language")
-):
-    space = repo.get_space(space_id)
-    if not space:
-        lang = get_language_from_header(accept_language)
-        raise APIError(status_code=404, message=t("space_not_found", lang), code="SPACE_NOT_FOUND")
-    return space
-
-@router.delete("/{space_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_space(
-    space_id: UUID, 
-    repo: RepositoryPort = Depends(get_repository),
-    accept_language: str = Header(default="en", alias="Accept-Language")
-):
-    space = repo.get_space(space_id)
-    lang = get_language_from_header(accept_language)
-    
-    if not space:
-        raise APIError(status_code=404, message=t("space_not_found", lang), code="SPACE_NOT_FOUND")
-        
-    repo.delete_space(space_id)
-    return None
-
-@router.post("/", response_model=Space, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=Space)
 def create_space(
     space_in: SpaceCreate, 
     repo: RepositoryPort = Depends(get_repository),
@@ -94,3 +80,65 @@ def update_space(
         
     repo.save_space(space)
     return space
+
+@router.delete("/{space_id}")
+def delete_space(
+    space_id: UUID,
+    repo: RepositoryPort = Depends(get_repository),
+    accept_language: str = Header(default="en", alias="Accept-Language")
+):
+    lang = get_language_from_header(accept_language)
+    repo.delete_space(space_id)
+    return {"detail": t("space_deleted", lang)}
+
+@router.get("/{space_id}/analytics", response_model=Dict[str, Any])
+async def get_space_analytics(
+    space_id: UUID,
+    repo: RepositoryPort = Depends(get_repository),
+    accept_language: str = Header(default="en", alias="Accept-Language")
+):
+    """
+    Get analytics for a space: idea maturity distribution, fragment counts, etc.
+    """
+    from domain.services.maturity_calculator import MaturityCalculator
+    
+    lang = get_language_from_header(accept_language)
+    space = repo.get_space(space_id)
+    if not space:
+        raise HTTPException(status_code=404, detail=t("space_not_found", lang))
+    
+    # Get all ideas in space
+    ideas = await repo.list_ideas(space_id=space_id)
+    fragments = await repo.list_fragments(space_id=space_id)
+    
+    # Calculate maturity distribution
+    maturity_distribution = {"germinal": 0, "growing": 0, "mature": 0}
+    idea_details = []
+    
+    for idea in ideas:
+        idea_fragments = await repo.list_fragments_by_idea(idea.id)
+        versions = await repo.list_idea_versions(idea.id)
+        score = MaturityCalculator.calculate(idea, idea_fragments, len(versions))
+        status = MaturityCalculator.get_status_label(score)
+        
+        maturity_distribution[status] += 1
+        idea_details.append({
+            "id": str(idea.id),
+            "title": idea.title_provisional,
+            "maturity_score": score,
+            "maturity_status": status,
+            "fragment_count": len(idea_fragments)
+        })
+    
+    # Sort ideas by maturity score descending
+    idea_details.sort(key=lambda x: x["maturity_score"], reverse=True)
+    
+    return {
+        "space_id": str(space_id),
+        "space_name": space.name,
+        "total_fragments": len(fragments),
+        "total_ideas": len(ideas),
+        "maturity_distribution": maturity_distribution,
+        "top_ideas": idea_details[:10],  # Top 10 most mature ideas
+        "ready_for_product": sum(1 for i in idea_details if i["maturity_score"] >= 60)
+    }

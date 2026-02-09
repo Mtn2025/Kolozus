@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, BookOpen, UploadCloud, Library, ShieldAlert } from "lucide-react"
+import { LayoutDashboard, BookOpen, UploadCloud, Library, ShieldAlert, Sparkles } from "lucide-react"
 
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
@@ -33,6 +33,7 @@ export function Sidebar({ className }: { className?: string }) {
     const navItems = [
         { href: "/", icon: LayoutDashboard, label: t("dashboard") },
         { href: "/library", icon: Library, label: t("library") },
+        { href: "/ready-to-publish", icon: Sparkles, label: "Listas para Publicar" },
         { href: "/ingest", icon: UploadCloud, label: t("ingest") },
         { href: "/publisher", icon: BookOpen, label: t("editorial") },
         { href: "/audit", icon: ShieldAlert, label: t("audit") },
