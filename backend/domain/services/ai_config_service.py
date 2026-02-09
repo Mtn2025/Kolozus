@@ -23,21 +23,21 @@ DEFAULT_PROFILES = {
         "blueprinter": {"provider": "groq", "model_name": "llama-3.3-70b-versatile"},
         "drafter": {"provider": "groq", "model_name": "llama-3.3-70b-versatile"},
         "summarizer": {"provider": "groq", "model_name": "llama-3.1-8b-instant"},
-        "embedding": {"provider": "ollama", "model_name": "nomic-embed-text"}
+        "embedding": {"provider": "ollama", "model_name": "nomic-embed-text-v2-moe:latest"}
     },
     "spark": {
         "name": "spark",
         "blueprinter": {"provider": "groq", "model_name": "llama-3.1-8b-instant"},
         "drafter": {"provider": "groq", "model_name": "llama-3.1-8b-instant"},
         "summarizer": {"provider": "groq", "model_name": "llama-3.1-8b-instant"},
-        "embedding": {"provider": "ollama", "model_name": "nomic-embed-text"}
+        "embedding": {"provider": "ollama", "model_name": "nomic-embed-text-v2-moe:latest"}
     },
     "guardian": {
         "name": "guardian",
-        "blueprinter": {"provider": "ollama", "model_name": "deepseek-r1"},
-        "drafter": {"provider": "ollama", "model_name": "llama3.3"},
-        "summarizer": {"provider": "ollama", "model_name": "llama3.2"},
-        "embedding": {"provider": "ollama", "model_name": "nomic-embed-text"}
+        "blueprinter": {"provider": "ollama", "model_name": "deepseek-r1:latest"},
+        "drafter": {"provider": "ollama", "model_name": "llama3.3:latest"},
+        "summarizer": {"provider": "ollama", "model_name": "llama3.2:1b"},
+        "embedding": {"provider": "ollama", "model_name": "nomic-embed-text-v2-moe:latest"}
     }
 }
 
