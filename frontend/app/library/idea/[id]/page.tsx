@@ -9,6 +9,7 @@ import { ArrowLeft, Cpu, Calendar, Tag, FileText } from "lucide-react"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { toast } from "sonner"
 import { MaturityIndicator } from "@/components/library/MaturityIndicator"
+import { CreateProductDialog } from "@/components/library/CreateProductDialog"
 
 interface MaturityData {
     score: number
@@ -32,6 +33,7 @@ interface Idea {
     domain?: string
     created_at: string
     updated_at?: string
+    space_id?: string
     maturity?: MaturityData
     metrics?: MetricsData
     fragments?: Array<{
@@ -102,6 +104,15 @@ export default function IdeaDetailPage() {
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     {t("library")}
                 </Button>
+
+                {/* Create Product Button - Show if ready */}
+                {idea.maturity?.ready_for_product && (
+                    <CreateProductDialog
+                        ideaId={idea.id}
+                        ideaTitle={idea.title_provisional || idea.title || ""}
+                        spaceId={idea.space_id}
+                    />
+                )}
             </div>
 
             {/* Main Card */}
