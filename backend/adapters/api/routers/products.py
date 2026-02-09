@@ -20,7 +20,7 @@ class ProductCreateRequest(BaseModel):
     space_id: Optional[UUID] = None
 
 @router.post("/", response_model=Product, status_code=status.HTTP_201_CREATED)
-def create_product(
+async def create_product(
     request: ProductCreateRequest,
     pipeline: CognitivePipeline = Depends(get_pipeline),
     repo: RepositoryPort = Depends(get_repository),
@@ -65,7 +65,7 @@ def get_product(
     return product
     
 @router.post("/{product_id}/blueprint", response_model=Dict[str, Any])
-def generate_blueprint(
+async def generate_blueprint(
     product_id: UUID,
     pipeline: CognitivePipeline = Depends(get_pipeline),
     repo: RepositoryPort = Depends(get_repository),
@@ -76,12 +76,23 @@ def generate_blueprint(
     if not product:
         raise HTTPException(status_code=404, detail=t("product_not_found", lang))
 
-    # Trigger blueprint generation using pipeline/LLM
-    # Pass language to synthesis
-    # blueprint = pipeline.generate_blueprint(product, language=lang) 
-    
-    # Mock return for now
-    return {"status": "blueprint_generated", "language": lang}
+    try:
+        # Trigger real blueprint generation using pipeline/LLM
+        blueprint = await pipeline.generate_blueprint(product, language=lang)
+        
+        # TODO: Save blueprint to product (requires Product.blueprint field in domain model)
+        # For now, return it directly
+        
+        return {
+            "status": "blueprint_generated",
+            "language": lang,
+            "blueprint": blueprint
+        }
+    except Exception as e:
+        print(f"Blueprint generation error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error generating blueprint: {str(e)}")
 
 @router.get("/{product_id}/export")
 def export_product(

@@ -208,3 +208,221 @@ class CognitivePipeline:
                  raise DatabaseError("Failed to save evolution/version", original_error=str(e))
             
         return decision
+
+    async def generate_blueprint(self, product, language: str = "en"):
+        """
+        Generate a blueprint (table of contents with structure) for a product
+        using AI to analyze mature ideas in the product's space.
+        
+        Args:
+            product: Product model instance with archetype, audience, space_id
+            language: Target language for the blueprint
+            
+        Returns:
+            dict: Blueprint structure with chapters and sections
+        """
+        from domain.services.maturity_calculator import MaturityCalculator
+        
+        # 1. Get all ideas from the product's space
+        ideas = await self.repo.list_ideas(space_id=product.space_id)
+        
+        if not ideas:
+            raise ModelError("No ideas available in this space to generate blueprint")
+        
+        # 2. Filter mature ideas (score > 50)
+        mature_ideas = []
+        for idea in ideas:
+            fragments = await self.repo.list_fragments_by_idea(idea.id)
+            versions = await self.repo.list_idea_versions(idea.id)
+            score = MaturityCalculator.calculate(idea, fragments, len(versions))
+            
+            if score > 50:
+                mature_ideas.append({
+                    "id": str(idea.id),
+                    "title": idea.title_provisional,
+                    "domain": idea.domain,
+                    "fragment_count": len(fragments),
+                    "maturity_score": score
+                })
+        
+        if not mature_ideas:
+            raise ModelError("No mature ideas available (all scores < 50)")
+        
+        # 3. Build context for AI
+        ideas_summary = "\n".join([
+            f"- {idea['title']} (Domain: {idea['domain']}, Fragmentos: {idea['fragment_count']}, Madurez: {idea['maturity_score']}%)"
+            for idea in mature_ideas
+        ])
+        
+        # 4. Generate blueprint prompt
+        prompt = f"""Eres un editor profesional experto. Analiza las siguientes ideas y crea una estructura editorial profesional.
+
+PRODUCTO:
+- Tipo: {product.archetype}
+- Audiencia: {product.target_audience}
+- Estilo: {product.style_family}
+- Título: {product.title}
+
+IDEAS DISPONIBLES:
+{ideas_summary}
+
+TAREA:
+Genera una estructura editorial completa en formato JSON con:
+- Título sugerido para el documento
+- Capítulos principales (3-7 capítulos)
+- Secciones dentro de cada capítulo
+- Para cada sección, indica qué ideas (por título) deberían usarse
+
+FORMATO JSON:
+{{
+  "title": "Título del Documento",
+  "chapters": [
+    {{
+      "title": "Título del Capítulo 1",
+      "order": 1,
+      "sections": [
+        {{
+          "title": "Título de Sección 1.1",
+          "order": 1,
+          "source_ideas": ["Título Idea 1", "Título Idea 2"]
+        }}
+      ]
+    }}
+  ]
+}}
+
+Responde ÚNICAMENTE con el JSON, sin explicaciones adicionales."""
+
+        try:
+            # 5. Call AI to generate blueprint
+            blueprint_json = await self.ai.synthesize(
+                context=prompt,
+                prompt="generate_blueprint",
+                language=language
+            )
+            
+            # 6. Parse JSON response
+            import json
+            import re
+            
+            # Extract JSON from potential markdown code block
+            json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', blueprint_json, re.DOTALL)
+            if json_match:
+                blueprint_json = json_match.group(1)
+            
+            blueprint = json.loads(blueprint_json)
+            
+            # 7. Map source_ideas titles to IDs
+            idea_title_to_id = {idea['title']: idea['id'] for idea in mature_ideas}
+            
+            for chapter in blueprint.get('chapters', []):
+                for section in chapter.get('sections', []):
+                    source_titles = section.get('source_ideas', [])
+                    section['source_idea_ids'] = [
+                        idea_title_to_id.get(title) 
+                        for title in source_titles 
+                        if title in idea_title_to_id
+                    ]
+            
+            return blueprint
+            
+        except json.JSONDecodeError as e:
+            raise ModelError(f"AI generated invalid JSON: {str(e)}")
+        except Exception as e:
+            if "connect" in str(e).lower():
+                raise NetworkError("Failed to connect to AI Provider for blueprint", original_error=str(e))
+            raise ModelError(f"Blueprint generation failed: {str(e)}")
+
+    async def generate_section_draft(self, section_title: str, source_idea_ids: List, product, language: str = "en"):
+        """
+        Generate a draft (written content) for a specific section using source ideas.
+        
+        Args:
+            section_title: Title of the section to write
+            source_idea_ids: List of UUIDs of ideas to use as source material
+            product: Product instance with archetype, audience, style
+            language: Target language
+            
+        Returns:
+            str: Generated draft content
+        """
+        # 1. Retrieve full content from source ideas
+        source_contents = []
+        for idea_id in source_idea_ids:
+            if not idea_id:
+                continue
+                
+            try:
+                idea_id_uuid = UUID(idea_id) if isinstance(idea_id, str) else idea_id
+                
+                # Get idea and its fragments
+                idea = await self.repo.get_idea(idea_id_uuid)
+                if not idea:
+                    continue
+                    
+                fragments = await self.repo.list_fragments_by_idea(idea_id_uuid)
+                versions = await self.repo.list_idea_versions(idea_id_uuid)
+                
+                # Use latest version if available, otherwise fragments
+                if versions:
+                    latest_version = max(versions, key=lambda v: v.version_number)
+                    content = latest_version.synthesized_text
+                else:
+                    content = "\n".join([f.raw_text for f in fragments])
+                
+                source_contents.append({
+                    "title": idea.title_provisional,
+                    "content": content
+                })
+            except Exception as e:
+                print(f"Error loading idea {idea_id}: {e}")
+                continue
+        
+        if not source_contents:
+            raise ModelError("No valid source ideas could be loaded for draft generation")
+        
+        # 2. Build context from sources
+        sources_text = "\n\n---\n\n".join([
+            f"**{src['title']}**\n{src['content']}"
+            for src in source_contents
+        ])
+        
+        # 3. Generate draft prompt
+        prompt = f"""Eres un escritor profesional especializado en {product.archetype}.
+
+AUDIENCIA: {product.target_audience}
+ESTILO: {product.style_family}
+
+SECCIÓN A ESCRIBIR: "{section_title}"
+
+MATERIAL DE REFERENCIA:
+{sources_text}
+
+TAREA:
+Escribe un borrador completo y profesional para la sección "{section_title}".
+
+INSTRUCCIONES:
+- Usa el material de referencia como base de contenido
+- Adapta el tono y estilo para la audiencia objetivo
+- Escribe 300-600 palabras
+- Estructura con párrafos claros
+- Incluye ejemplos o casos prácticos si es apropiado
+- NO uses markdown headers (###), solo texto con párrafos
+- Escribe en {language}
+
+BORRADOR:"""
+
+        try:
+            # 4. Generate draft
+            draft_content = await self.ai.synthesize(
+                context=prompt,
+                prompt="generate_section_draft",
+                language=language
+            )
+            
+            return draft_content.strip()
+            
+        except Exception as e:
+            if "connect" in str(e).lower():
+                raise NetworkError("Failed to connect to AI Provider for draft", original_error=str(e))
+            raise ModelError(f"Draft generation failed: {str(e)}")
