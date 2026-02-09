@@ -37,12 +37,29 @@ class CompositeAIProvider(AIProviderPort):
 
     async def generate_embedding(self, text: str, user_id: Optional[UUID] = None) -> List[float]:
         profile = self.config_service.get_config(user_id)
+        
+        # Check environment setting to avoid defaulting to dead Ollama
+        env_provider = os.getenv("AI_PROVIDER", "ollama")
+        
         if hasattr(profile, 'embedding'):
              config = profile.embedding
         else:
-             config = AIModelConfig(provider="ollama", model_name="nomic-embed-text")
+             # Smart Default: If AI_PROVIDER is mock or groq (which has no embeddings), use mock embeddings
+             # Only use Ollama if explicitly set or if we are sure.
+             if env_provider == "ollama":
+                 config = AIModelConfig(provider="ollama", model_name="nomic-embed-text")
+             else:
+                 # Fallback to mock for stability - Groq doesn't do embeddings
+                 config = AIModelConfig(provider="mock", model_name="random-projection")
              
         provider = self._get_provider(config)
+        
+        # Special case: If provider is Ollama but we know we are in a 'mock' env or fallback, this confirms it.
+        # But _get_provider handles 'mock' config provider string?
+        # We need to ensure _get_provider supports 'mock' in config.provider string.
+        if config.provider == "mock":
+            return await MockAdapter().generate_embedding(text)
+
         return await provider.generate_embedding(text)
 
     async def synthesize(self, context: str, prompt: str, user_id: Optional[UUID] = None, language: str = "en") -> str:

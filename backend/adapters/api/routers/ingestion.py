@@ -52,7 +52,9 @@ async def ingest_fragment(
              }
 
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=t("ingest_error", lang_code))
+        # Return original error for debugging, concatenated with localized message
+        error_detail = f"{t('ingest_error', lang_code)}: {str(e)}"
+        raise HTTPException(status_code=500, detail=error_detail)
 
 @router.post("/batch", response_model=Dict[str, Any])
 async def ingest_batch(
