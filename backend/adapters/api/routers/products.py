@@ -94,6 +94,56 @@ async def generate_blueprint(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error generating blueprint: {str(e)}")
 
+@router.post("/{product_id}/sections/{section_index}/draft", response_model=Dict[str, Any])
+async def generate_section_draft(
+    product_id: UUID,
+    section_index: int,
+    request: dict,  # Contains: section_title, source_idea_ids
+    pipeline: CognitivePipeline = Depends(get_pipeline),
+    repo: RepositoryPort = Depends(get_repository),
+    accept_language: str = Header(default="en", alias="Accept-Language")
+):
+    """
+    Generate a draft for a specific section of the product blueprint.
+    
+    Request body:
+    {
+        "section_title": "Introduction to X",
+        "source_idea_ids": ["uuid1", "uuid2"]
+    }
+    """
+    lang = get_language_from_header(accept_language)
+    product = repo.get_product(product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail=t("product_not_found", lang))
+    
+    section_title = request.get("section_title", f"Section {section_index}")
+    source_idea_ids = request.get("source_idea_ids", [])
+    
+    if not source_idea_ids:
+        raise HTTPException(status_code=400, detail="source_idea_ids is required")
+    
+    try:
+        # Generate draft using pipeline
+        draft_content = await pipeline.generate_section_draft(
+            section_title=section_title,
+            source_idea_ids=source_idea_ids,
+            product=product,
+            language=lang
+        )
+        
+        return {
+            "status": "draft_generated",
+            "section_title": section_title,
+            "content": draft_content,
+            "language": lang
+        }
+    except Exception as e:
+        print(f"Draft generation error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error generating draft: {str(e)}")
+
 @router.get("/{product_id}/export")
 def export_product(
     product_id: UUID,
