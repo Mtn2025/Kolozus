@@ -5,23 +5,23 @@ from uuid import UUID
 from infrastructure.dependencies import get_repository
 from ports.repository import RepositoryPort
 from domain.models import Space
+from pydantic import BaseModel
 from i18n import t, get_language_from_header
 
-router = APIRouter(prefix="/spaces", tags=["spaces"])
+router = APIRouter(prefix="/spaces", tags=["Spaces"])
 
-class SpaceCreate:
-    def __init__(self, name: str, description: str = None, icon: str = None, color: str = None):
-        self.name = name
-        self.description = description
-        self.icon = icon
-        self.color = color
+class SpaceCreate(BaseModel):
+    name: str
+    description: str | None = None
+    icon: str | None = "folder"
+    color: str | None = "blue"
 
-class SpaceUpdate:
-    def __init__(self, name: str = None, description: str = None, icon: str = None, color: str = None):
-        self.name = name
-        self.description = description
-        self.icon = icon
-        self.color = color
+class SpaceUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    icon: str | None = None
+    color: str | None = None
+
 
 @router.get("/{space_id}", response_model=Space)
 def get_space(
