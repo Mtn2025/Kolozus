@@ -1,7 +1,7 @@
 "use client"
 
 import { LanguageSwitcher } from "@/components/settings/LanguageSwitcher"
-import { ThemeSwitch } from "@/components/ThemeSwitch"
+import { ThemeSwitcher } from "@/components/settings/ThemeSwitcher"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useLanguage } from "@/contexts/LanguageContext"
 
@@ -24,7 +24,7 @@ export default function SettingsPage() {
                             <p className="font-medium">{t("theme")}</p>
                             <p className="text-sm text-muted-foreground">{t("systemTheme")}</p>
                         </div>
-                        <ThemeSwitch />
+                        <ThemeSwitcher />
                     </div>
 
                     <div className="flex items-center justify-between">
