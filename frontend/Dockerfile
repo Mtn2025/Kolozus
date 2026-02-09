@@ -33,20 +33,8 @@ ENV NEXT_TELEMETRY_DISABLED 1
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
-# Debug y Verificación antes del build
-RUN echo "---------------------------------------------------" && \
-  echo "🏗️  Starting Next.js Build..." && \
-  echo "🔍  Checking Build-Time Environment Variables..." && \
-  echo "  > NEXT_PUBLIC_API_URL: '${NEXT_PUBLIC_API_URL}'" && \
-  if [ -z "$NEXT_PUBLIC_API_URL" ]; then \
-  echo "❌  ERROR: NEXT_PUBLIC_API_URL is likely empty or not set!" && \
-  echo "    This will cause the frontend to default to localhost in production." && \
-  echo "    Please check your Docker build args or Coolify environment variables." && \
-  exit 1; \
-  fi && \
-  echo "✅  Environment looks good. Proceeding with build..." && \
-  echo "---------------------------------------------------" && \
-  npm run build
+# Build the Next.js application
+RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner

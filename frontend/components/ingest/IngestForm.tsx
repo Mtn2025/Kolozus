@@ -65,7 +65,6 @@ export function IngestForm({ onSuccess }: IngestFormProps) {
                     ? text.split(/\n\n+/).filter(t => t.trim().length > 0)
                     : text,
                 space_id: spaceId,
-                space_id: spaceId,
                 mode: mode,
                 model_name: model,
                 language: language // Pass current language to backend
