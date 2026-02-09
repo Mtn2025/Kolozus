@@ -74,6 +74,19 @@ async def domain_exception_handler(request: Request, exc: DomainError):
 from adapters.api.errors import APIError, api_error_handler
 app.add_exception_handler(APIError, api_error_handler)
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import traceback
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal Server Error", 
+            "message": str(exc),
+            "traceback": traceback.format_exc().splitlines()[-1] # Brief trace
+        },
+    )
+
 # CORS (Allow Frontend)
 # CORS - Configuración para producción
 import os
@@ -82,10 +95,18 @@ import os
 # Ej: "https://kolozus.tudominio.com"
 allowed_origins_env = os.getenv("CORS_ALLOWED_ORIGINS", "")
 allowed_origins = allowed_origins_env.split(",") if allowed_origins_env else ["*"]
+print(f"CORS Allowed Origins: {allowed_origins}")
+
+# Handle Wildcard + Credentials issue
+allow_origin_regex = None
+if len(allowed_origins) == 1 and allowed_origins[0] == "*":
+    allow_origin_regex = ".*"
+    allowed_origins = [] # Let regex handle it
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    allow_origin_regex=allow_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

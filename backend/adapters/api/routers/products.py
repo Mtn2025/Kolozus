@@ -20,7 +20,7 @@ class ProductCreateRequest(BaseModel):
     space_id: Optional[UUID] = None
 
 @router.post("/", response_model=Product, status_code=status.HTTP_201_CREATED)
-async def create_product(
+def create_product(
     request: ProductCreateRequest,
     pipeline: CognitivePipeline = Depends(get_pipeline),
     repo: RepositoryPort = Depends(get_repository),
@@ -42,56 +42,56 @@ async def create_product(
     # We might use pipeline to generate initial blueprint here
     # ...
     
-    await repo.save_product(product)
+    repo.create_product(product)
     return product
 
 @router.get("/", response_model=List[Product])
-async def list_products(
+def list_products(
     space_id: Optional[UUID] = None,
     repo: RepositoryPort = Depends(get_repository)
 ):
-    return await repo.list_products(space_id=space_id)
+    return repo.list_products(space_id=space_id)
 
 @router.get("/{product_id}", response_model=Product)
-async def get_product(
+def get_product(
     product_id: UUID,
     repo: RepositoryPort = Depends(get_repository),
     accept_language: str = Header(default="en", alias="Accept-Language")
 ):
-    product = await repo.get_product(product_id)
+    product = repo.get_product(product_id)
     if not product:
         lang = get_language_from_header(accept_language)
         raise HTTPException(status_code=404, detail=t("product_not_found", lang))
     return product
     
 @router.post("/{product_id}/blueprint", response_model=Dict[str, Any])
-async def generate_blueprint(
+def generate_blueprint(
     product_id: UUID,
     pipeline: CognitivePipeline = Depends(get_pipeline),
     repo: RepositoryPort = Depends(get_repository),
     accept_language: str = Header(default="en", alias="Accept-Language")
 ):
     lang = get_language_from_header(accept_language)
-    product = await repo.get_product(product_id)
+    product = repo.get_product(product_id)
     if not product:
         raise HTTPException(status_code=404, detail=t("product_not_found", lang))
 
     # Trigger blueprint generation using pipeline/LLM
     # Pass language to synthesis
-    # blueprint = await pipeline.generate_blueprint(product, language=lang) 
+    # blueprint = pipeline.generate_blueprint(product, language=lang) 
     
     # Mock return for now
     return {"status": "blueprint_generated", "language": lang}
 
 @router.get("/{product_id}/export")
-async def export_product(
+def export_product(
     product_id: UUID,
     format: str = "md",
     repo: RepositoryPort = Depends(get_repository),
     accept_language: str = Header(default="en", alias="Accept-Language")
 ):
     lang = get_language_from_header(accept_language)
-    product = await repo.get_product(product_id)
+    product = repo.get_product(product_id)
     if not product:
         raise HTTPException(status_code=404, detail=t("product_not_found", lang))
 

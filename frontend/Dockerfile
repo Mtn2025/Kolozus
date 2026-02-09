@@ -58,8 +58,8 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Install curl for healthcheck
-RUN apk add --no-cache curl
+# Install curl for healthcheck and libc6-compat for Next.js/Sharp
+RUN apk add --no-cache curl libc6-compat
 
 COPY --from=builder /app/public ./public
 

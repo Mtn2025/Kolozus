@@ -22,7 +22,7 @@ class SpaceUpdate(BaseModel):
     color: str | None = None
 
 @router.get("/", response_model=List[Space])
-async def list_spaces(
+def list_spaces(
     repo: RepositoryPort = Depends(get_repository)
 ):
     return repo.list_spaces()
@@ -30,7 +30,7 @@ async def list_spaces(
 from adapters.api.errors import APIError
 
 @router.get("/{space_id}", response_model=Space)
-async def get_space(
+def get_space(
     space_id: UUID, 
     repo: RepositoryPort = Depends(get_repository),
     accept_language: str = Header(default="en", alias="Accept-Language")
@@ -42,7 +42,7 @@ async def get_space(
     return space
 
 @router.delete("/{space_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_space(
+def delete_space(
     space_id: UUID, 
     repo: RepositoryPort = Depends(get_repository),
     accept_language: str = Header(default="en", alias="Accept-Language")
@@ -57,7 +57,7 @@ async def delete_space(
     return None
 
 @router.post("/", response_model=Space, status_code=status.HTTP_201_CREATED)
-async def create_space(
+def create_space(
     space_in: SpaceCreate, 
     repo: RepositoryPort = Depends(get_repository),
     accept_language: str = Header(default="en", alias="Accept-Language")
@@ -71,7 +71,7 @@ async def create_space(
     return saved_space
 
 @router.put("/{space_id}", response_model=Space)
-async def update_space(
+def update_space(
     space_id: UUID, 
     space_in: SpaceUpdate, 
     repo: RepositoryPort = Depends(get_repository),
@@ -94,18 +94,3 @@ async def update_space(
         
     repo.save_space(space)
     return space
-
-@router.delete("/{space_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_space(
-    space_id: UUID, 
-    repo: RepositoryPort = Depends(get_repository),
-    accept_language: str = Header(default="en", alias="Accept-Language")
-):
-    space = await repo.get_space(space_id)
-    lang = get_language_from_header(accept_language)
-    
-    if not space:
-        raise HTTPException(status_code=404, detail=t("space_not_found", lang))
-        
-    await repo.delete_space(space_id)
-    return None
