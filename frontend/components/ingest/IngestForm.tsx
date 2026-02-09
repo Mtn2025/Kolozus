@@ -35,7 +35,6 @@ export function IngestForm({ onSuccess }: IngestFormProps) {
     const [spaceId, setSpaceId] = useState<string>(defaultSpaceId || "")
     const [isBatch, setIsBatch] = useState(false)
     const [mode, setMode] = useState("default")
-    const [model, setModel] = useState("gpt-4o") // Default high-end model
 
     useEffect(() => {
         const fetchSpaces = async () => {
@@ -66,7 +65,6 @@ export function IngestForm({ onSuccess }: IngestFormProps) {
                     : text,
                 space_id: spaceId,
                 mode: mode,
-                model_name: model,
                 language: language // Pass current language to backend
             }
 
@@ -129,63 +127,49 @@ export function IngestForm({ onSuccess }: IngestFormProps) {
                             </Select>
                         </div>
 
-                        {/* Model Selection */}
-                        <div className="space-y-2">
-                            <Label>{t("ingestModel") || "Modelo IA"}</Label>
-                            <Select value={model} onValueChange={setModel}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-                                    <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
-                                    <SelectItem value="llama-3-70b">Llama 3 70B</SelectItem>
-                                    <SelectItem value="deepseek-coder">DeepSeek Coder</SelectItem>
-                                </SelectContent>
-                            </Select>
+                    </div>
+                </div>
+
+                {/* Mode & Batch Toggles */}
+                <div className="flex items-center justify-between gap-4">
+                    <div className="space-y-0.5">
+                        <Label className="text-base">{t("batchMode")}</Label>
+                        <div className="text-xs text-muted-foreground">
+                            {t("batchModeHelp")}
                         </div>
                     </div>
+                    <Switch checked={isBatch} onCheckedChange={setIsBatch} />
+                </div>
 
-                    {/* Mode & Batch Toggles */}
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="space-y-0.5">
-                            <Label className="text-base">{t("batchMode")}</Label>
-                            <div className="text-xs text-muted-foreground">
-                                {t("batchModeHelp")}
-                            </div>
-                        </div>
-                        <Switch checked={isBatch} onCheckedChange={setIsBatch} />
+                {/* Text Area */}
+                <div className="space-y-2">
+                    <Label>{t("contentLabel")}</Label>
+                    <Textarea
+                        placeholder={t("contentPlaceholder")}
+                        className="min-h-[200px] font-mono text-sm"
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        required
+                    />
+                    <div className="text-xs text-muted-foreground text-right">
+                        {text.length} {t("charactersLabel")}
                     </div>
+                </div>
 
-                    {/* Text Area */}
-                    <div className="space-y-2">
-                        <Label>{t("contentLabel")}</Label>
-                        <Textarea
-                            placeholder={t("contentPlaceholder")}
-                            className="min-h-[200px] font-mono text-sm"
-                            value={text}
-                            onChange={(e) => setText(e.target.value)}
-                            required
-                        />
-                        <div className="text-xs text-muted-foreground text-right">
-                            {text.length} {t("charactersLabel")}
-                        </div>
-                    </div>
-
-                </CardContent>
-                <CardFooter className="justify-end gap-2">
-                    <Button type="submit" disabled={loading || !spaceId || !text.trim()}>
-                        {loading ? (
-                            <>{t("processing")}</>
-                        ) : (
-                            <>
-                                <UploadCloud className="mr-2 h-4 w-4" />
-                                {t("ingestButtonLabel")} {isBatch ? t("batchLabel") : ""}
-                            </>
-                        )}
-                    </Button>
-                </CardFooter>
-            </form>
-        </Card>
+            </CardContent>
+            <CardFooter className="justify-end gap-2">
+                <Button type="submit" disabled={loading || !spaceId || !text.trim()}>
+                    {loading ? (
+                        <>{t("processing")}</>
+                    ) : (
+                        <>
+                            <UploadCloud className="mr-2 h-4 w-4" />
+                            {t("ingestButtonLabel")} {isBatch ? t("batchLabel") : ""}
+                        </>
+                    )}
+                </Button>
+            </CardFooter>
+        </form>
+        </Card >
     )
 }
