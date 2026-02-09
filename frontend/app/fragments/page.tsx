@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Trash2, RefreshCw, ArrowLeft, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
@@ -30,7 +30,7 @@ interface Fragment {
     space_id?: string
 }
 
-export default function FragmentsPage() {
+function FragmentsContent() {
     const searchParams = useSearchParams()
     const router = useRouter()
     const spaceId = searchParams?.get("space_id")
@@ -292,5 +292,20 @@ export default function FragmentsPage() {
                 </AlertDialogContent>
             </AlertDialog>
         </div>
+    )
+}
+
+export default function FragmentsPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center h-[calc(100vh-80px)]">
+                <div className="text-center space-y-2">
+                    <RefreshCw className="h-8 w-8 animate-spin mx-auto text-primary" />
+                    <div className="text-lg font-medium">Cargando fragmentos...</div>
+                </div>
+            </div>
+        }>
+            <FragmentsContent />
+        </Suspense>
     )
 }
